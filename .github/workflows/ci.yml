@@ -1,0 +1,200 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================
+  # JOB 1: Build e Testes
+  # ============================================================
+  build-and-test:
+    name: 1. Build e Testes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+
+      # Se o projeto Gradle ainda não existir, o job é concluído sem falhas
+      - name: Detectar projeto Gradle
+        id: gradle-present
+        run: echo "exists=$(test -f ./gradlew && echo 'true' || echo 'false')" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 17
+        if: steps.gradle-present.outputs.exists == 'true'
+        uses: actions/setup-java@v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Make Gradle Wrapper executable
+        if: steps.gradle-present.outputs.exists == 'true'
+        run: chmod +x ./gradlew
+
+      - name: Build, test and lint
+        if: steps.gradle-present.outputs.exists == 'true'
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug --no-daemon --stacktrace
+
+  # ============================================================
+  # JOB 2: Estilo de Código (indentação)
+  # ============================================================
+  code-style:
+    name: 2. Estilo de Código
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Verificar indentação Java/XML/KTS
+        run: |
+          set -e
+          echo "Verificando indentação em arquivos Java/XML/KTS..."
+
+          # Não deve haver tabs em arquivos de código
+          if grep -rP "\t" --include="*.java" --include="*.xml" --include="*.kts" app/src/; then
+            echo "ERRO: Encontrado tab em arquivo de código"
+            echo "Use espaços em vez de tabs (indentação padrão: 4 espaços)"
+            exit 1
+          fi
+
+          echo "Indentação com espaços OK"
+
+  # ============================================================
+  # JOB 3: Convenção de Commits
+  # ============================================================
+  commit-convention:
+    name: 3. Convenção de Commits
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Verificar padrão de commits
+        run: |
+          set -e
+          echo "Verificando convenção de commits..."
+
+          # Padrão de commits aceitos
+          PATTERN="^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert):"
+
+          # Obter commits do PR
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMITS=$(git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          else
+            COMMITS=$(git log --oneline -10)
+          fi
+
+          echo "Commits encontrados:"
+          echo "$COMMITS"
+
+          # Verificar cada commit
+          echo "$COMMITS" | while read -r line; do
+            COMMIT_MSG=$(echo "$line" | cut -d' ' -f2-)
+            if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
+              echo "ERRO: Commit não segue o padrão: $COMMIT_MSG"
+              echo "Padrão esperado: feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert: mensagem"
+              exit 1
+            fi
+          done
+
+          echo "Convenção de commits OK"
+
+  # ============================================================
+  # JOB 5: Idioma dos Comentários
+  # ============================================================
+  comment-language:
+    name: 5. Idioma dos Comentários
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    continue-on-error: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Verificar comentários
+        run: |
+          echo "Verificando comentários em arquivos Java..."
+
+          # Extrair comentários de arquivos .java
+          find app/src -name "*.java" -exec grep -Hn "//\|/\*\|\*" {} \; > /tmp/comments.txt || true
+
+          if [ ! -s /tmp/comments.txt ]; then
+            echo "Nenhum comentário encontrado"
+            exit 0
+          fi
+
+          echo "Comentários encontrados:"
+          cat /tmp/comments.txt
+
+          # Verificar se comentários fazem sentido (básico)
+          # Procurar por comentários muito curtos ou sem sentido
+          while IFS= read -r line; do
+            FILE=$(echo "$line" | cut -d: -f1)
+            LINE=$(echo "$line" | cut -d: -f2)
+            COMMENT=$(echo "$line" | cut -d: -f3-)
+
+            # Verificar se comentário tem pelo menos 3 caracteres após //
+            CLEAN=$(echo "$COMMENT" | sed -e 's|//||g; s|/\*||g; s|\*/||g' -e 's/^[[:space:]]*//; s/[[:space:]]*$//')
+            if [ ${#CLEAN} -lt 3 ]; then
+              echo "AVISO: Comentário muito curto em $FILE:$LINE"
+            fi
+          done < /tmp/comments.txt
+
+          echo "Verificação de comentários concluída"
+
+  # ============================================================
+  # JOB 6: Idioma do Código
+  # ============================================================
+  code-language:
+    name: 6. Idioma do Código
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    continue-on-error: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Verificar código em inglês
+        run: |
+          echo "Verificando se código está em inglês..."
+
+          # Verificar nomes de classes, variáveis e funções
+          # Procurar por possíveis palavras em português
+          PATTERNS="buscar|salvar|atualizar|remover|listar|criar|usuario|senha|produto|loja|venda|estoque|relatorio|dashboard"
+
+          if grep -rE "$PATTERNS" --include="*.java" --include="*.xml" app/src/; then
+            echo "AVISO: Encontrados possíveis nomes em português"
+            echo "Considere usar nomes em inglês: fetch, save, update, delete, list, create"
+          fi
+
+          echo "Verificação de idioma concluída"
