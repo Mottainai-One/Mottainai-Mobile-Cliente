@@ -29,7 +29,13 @@ jobs:
         with:
           persist-credentials: false
 
+      # Se o projeto Gradle ainda não existir, o job é concluído sem falhas
+      - name: Detectar projeto Gradle
+        id: gradle-present
+        run: echo "exists=$(test -f ./gradlew && echo 'true' || echo 'false')" >> "$GITHUB_OUTPUT"
+
       - name: Set up JDK 17
+        if: steps.gradle-present.outputs.exists == 'true'
         uses: actions/setup-java@v4.7.1
         with:
           distribution: temurin
@@ -37,9 +43,11 @@ jobs:
           cache: gradle
 
       - name: Make Gradle Wrapper executable
+        if: steps.gradle-present.outputs.exists == 'true'
         run: chmod +x ./gradlew
 
       - name: Build, test and lint
+        if: steps.gradle-present.outputs.exists == 'true'
         run: ./gradlew testDebugUnitTest lintDebug assembleDebug --no-daemon --stacktrace
 
   # ============================================================
