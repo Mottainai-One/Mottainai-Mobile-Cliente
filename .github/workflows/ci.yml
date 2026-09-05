@@ -153,7 +153,7 @@ jobs:
             COMMENT=$(echo "$line" | cut -d: -f3-)
 
             # Verificar se comentário tem pelo menos 3 caracteres após //
-            CLEAN=$(echo "$COMMENT" | sed 's|//||g; s|/\*||g; s|\*/||g' | xargs)
+            CLEAN=$(echo "$COMMENT" | sed -e 's|//||g; s|/\*||g; s|\*/||g' -e 's/^[[:space:]]*//; s/[[:space:]]*$//')
             if [ ${#CLEAN} -lt 3 ]; then
               echo "AVISO: Comentário muito curto em $FILE:$LINE"
             fi
