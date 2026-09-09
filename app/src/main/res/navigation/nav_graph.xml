@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.mottainai.cliente.fragments.HomeFragment"
+        android:label="Início" />
+
+    <fragment
+        android:id="@+id/catalogFragment"
+        android:name="com.mottainai.cliente.fragments.CatalogFragment"
+        android:label="Catálogo" />
+
+    <fragment
+        android:id="@+id/storesFragment"
+        android:name="com.mottainai.cliente.fragments.StoresFragment"
+        android:label="Lojas" />
+
+    <fragment
+        android:id="@+id/pointsFragment"
+        android:name="com.mottainai.cliente.fragments.PointsFragment"
+        android:label="Pontos">
+        <action
+            android:id="@+id/action_pointsFragment_to_impactFragment"
+            app:destination="@id/impactFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/impactFragment"
+        android:name="com.mottainai.cliente.fragments.ImpactFragment"
+        android:label="Meu impacto" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.mottainai.cliente.fragments.ProfileFragment"
+        android:label="Perfil" />
+
+    <activity
+        android:id="@+id/offerDetailActivity"
+        android:name="com.mottainai.cliente.activities.OfferDetailActivity"
+        android:label="Detalhe da oferta">
+        <argument
+            android:name="offer_id"
+            app:argType="string" />
+    </activity>
+
+</navigation>

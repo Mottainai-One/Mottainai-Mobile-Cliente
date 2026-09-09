@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand palette -->
+    <color name="primary_green">#1F5233</color>
+    <color name="primary_green_dark">#183D26</color>
+    <color name="background_beige">#F8F7F2</color>
+    <color name="card_light_green">#E9F5EF</color>
+    <color name="accent_red">#D32F2F</color>
+    <color name="accent_red_dark">#B71C1C</color>
+    <color name="accent_orange">#F57C00</color>
+    <color name="accent_purple">#7E57C2</color>
+    <color name="accent_purple_light">#EDE7F6</color>
+
+    <!-- Text -->
+    <color name="text_primary">#212121</color>
+    <color name="text_grey">#757575</color>
+    <color name="text_grey_light">#BDBDBD</color>
+    <color name="divider_grey">#EEEEEE</color>
+
+    <!-- Surfaces -->
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="chat_bubble_user">#1F5233</color>
+    <color name="chat_bubble_bot">#FFFFFF</color>
+
+    <!-- Offer thumbnail placeholders (flat color stand-ins for product photos) -->
+    <color name="thumb_green">#A9D8B8</color>
+    <color name="thumb_orange">#F3C08A</color>
+    <color name="thumb_tan">#E4C9A0</color>
+    <color name="thumb_brown">#B08968</color>
+    <color name="thumb_peach">#F0B79A</color>
+    <color name="thumb_purple">#C9B6D9</color>
+</resources>
