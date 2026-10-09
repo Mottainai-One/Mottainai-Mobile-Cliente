@@ -14,14 +14,24 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.mottainai.cliente.activities.AssistantActivity;
+import com.mottainai.cliente.activities.LoginClienteActivity;
+import com.mottainai.cliente.utils.SessionManager;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
+
+        if (!new SessionManager(this).isLoggedIn()) {
+            Intent loginIntent = new Intent(this, LoginClienteActivity.class);
+            loginIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(loginIntent);
+            finish();
+            return;
+        }
+
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
@@ -30,9 +40,6 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         NavigationUI.setupWithNavController(bottomNav, navController);
-
-        findViewById(R.id.fab_assistant).setOnClickListener(v ->
-                startActivity(new Intent(this, AssistantActivity.class)));
 
         applyWindowInsets(bottomNav);
     }

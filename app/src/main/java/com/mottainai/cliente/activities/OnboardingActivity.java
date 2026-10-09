@@ -9,7 +9,7 @@ import com.mottainai.cliente.MainActivity;
 import com.mottainai.cliente.R;
 import com.mottainai.cliente.utils.SessionManager;
 
-/** Launcher activity: shows the intro once, then MainActivity takes over on every later launch. */
+/** Launcher activity that displays the intro once before routing by session state. */
 public class OnboardingActivity extends AppCompatActivity {
 
     private SessionManager sessionManager;
@@ -20,19 +20,22 @@ public class OnboardingActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
         if (sessionManager.isOnboardingDone()) {
-            goToMain();
+            goToNextScreen();
             return;
         }
 
         setContentView(R.layout.activity_onboarding);
         findViewById(R.id.btn_get_started).setOnClickListener(v -> {
             sessionManager.setOnboardingDone();
-            goToMain();
+            goToNextScreen();
         });
     }
 
-    private void goToMain() {
-        startActivity(new Intent(this, MainActivity.class));
+    private void goToNextScreen() {
+        Class<?> destination = sessionManager.isLoggedIn()
+                ? MainActivity.class
+                : LoginClienteActivity.class;
+        startActivity(new Intent(this, destination));
         finish();
     }
 }

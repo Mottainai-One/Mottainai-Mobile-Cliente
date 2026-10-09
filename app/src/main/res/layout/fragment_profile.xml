@@ -33,7 +33,7 @@
                 android:layout_height="56dp"
                 android:background="@drawable/bg_circle_light_green"
                 android:gravity="center"
-                android:text="MA"
+                android:text="C"
                 android:textColor="@color/primary_green"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -49,7 +49,7 @@
                     android:id="@+id/tv_profile_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Maria Almeida"
+                    android:text="Carregando…"
                     android:textColor="@color/text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold" />
@@ -59,11 +59,28 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Nível Semente · 1.280 pontos"
+                    android:text=""
                     android:textColor="@color/text_grey"
                     android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_profile_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Carregando perfil…"
+            android:textColor="@color/text_grey" />
+
+        <TextView
+            android:id="@+id/btn_profile_retry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Tentar novamente"
+            android:textColor="@color/primary_green"
+            android:visibility="gone" />
 
         <LinearLayout
             android:id="@+id/row_your_data"
