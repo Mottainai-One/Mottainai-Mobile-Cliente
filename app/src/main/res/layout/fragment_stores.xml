@@ -24,27 +24,29 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Lojas parceiras perto de você"
+            android:text="Lojas parceiras cadastradas"
             android:textColor="@color/text_grey"
             android:textSize="13sp" />
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="16dp"
+            android:minHeight="220dp"
+            android:background="@drawable/bg_map_placeholder">
 
             <com.mottainai.cliente.widgets.PartnerMapView
                 android:id="@+id/map_stores"
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
-                android:background="@drawable/bg_map_placeholder" />
+                android:visibility="gone" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="14dp"
                 android:letterSpacing="0.05"
-                android:text="SUA REGIÃO"
+                android:text="© OpenStreetMap contributors"
                 android:textColor="@color/primary_green_dark"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -58,11 +60,26 @@
                 android:background="@drawable/bg_pill_rounded"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="6dp"
-                android:text="Mercado Verde · 0.4 km"
+                android:text="Carregando lojas..."
                 android:textColor="@color/text_primary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </FrameLayout>
+
+        <TextView
+            android:id="@+id/stores_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Carregando lojas..."
+            android:textColor="@color/text_grey" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stores_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="match_parent"
@@ -79,6 +96,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:nestedScrollingEnabled="false" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stores_load_more"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Carregar mais lojas"
+            android:visibility="gone" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
