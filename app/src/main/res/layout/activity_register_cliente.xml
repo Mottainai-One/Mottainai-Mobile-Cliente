@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Criar conta"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Seus dados"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
+        <EditText android:id="@+id/input_register_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nome completo" android:inputType="textPersonName" android:maxLength="150" />
+        <EditText android:id="@+id/input_register_cpf" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="CPF (11 dígitos)" android:inputType="number" android:maxLength="11" />
+        <EditText android:id="@+id/input_register_email" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="E-mail" android:inputType="textEmailAddress" android:maxLength="150" />
+        <EditText android:id="@+id/input_register_password" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Senha (mínimo de 8 caracteres)" android:inputType="textPassword" android:maxLength="100" />
+        <EditText android:id="@+id/input_register_phone" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Telefone" android:inputType="phone" android:maxLength="20" />
+        <EditText android:id="@+id/input_register_birth_date" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Data de nascimento (AAAA-MM-DD, opcional)" android:inputType="text" android:maxLength="10" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Endereço"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
+        <EditText android:id="@+id/input_register_cep" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="CEP (8 dígitos)" android:inputType="number" android:maxLength="8" />
+        <Button android:id="@+id/btn_register_find_cep" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Buscar CEP" />
+        <EditText android:id="@+id/input_register_street" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Rua" android:inputType="textPostalAddress" android:maxLength="150" />
+        <EditText android:id="@+id/input_register_number" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Número" android:inputType="text" android:maxLength="10" />
+        <EditText android:id="@+id/input_register_complement" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Complemento (opcional)" android:inputType="text" android:maxLength="100" />
+        <EditText android:id="@+id/input_register_neighborhood" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Bairro" android:inputType="text" android:maxLength="100" />
+        <EditText android:id="@+id/input_register_city" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Cidade" android:inputType="text" android:maxLength="100" />
+        <EditText android:id="@+id/input_register_state" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="UF" android:inputType="textCapCharacters" android:maxLength="2" />
+        <CheckBox android:id="@+id/check_register_marketing" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Aceito receber novidades e ofertas" />
+        <TextView android:id="@+id/text_register_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:visibility="gone" />
+        <Button android:id="@+id/btn_register_submit" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Cadastrar" />
+    </LinearLayout>
+</ScrollView>

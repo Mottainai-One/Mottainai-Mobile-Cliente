@@ -47,3 +47,15 @@ O **Mottainai Cliente** não atua sozinho. Ele é a ponta final de uma rede inte
 2. **A Ação:** O *Mottainai Operacional* alerta o Gerente da loja, que aprova uma promoção (ex: 50% de desconto).
 3. **A Conexão:** Essa decisão vira, instantaneamente, uma promoção no catálogo do **App Cliente**.
 4. **O Resultado:** O aplicativo notifica os clientes próximos via *Geofencing*, os clientes compram o produto, a loja evita o prejuízo, o consumidor ganha o desconto (e pontos) e o alimento é salvo do lixo.
+
+## Configuração da API para desenvolvimento
+
+Defina `MOTTAINAI_API_BASE_URL` como propriedade Gradle, por exemplo no arquivo pessoal `C:\Users\<usuario>\.gradle\gradle.properties`:
+
+```properties
+MOTTAINAI_API_BASE_URL=http://10.0.2.2:8080/
+```
+
+No emulador Android, `10.0.2.2` aponta para a máquina de desenvolvimento. Em aparelho físico, use um endereço acessível pelo aparelho. A URL precisa terminar em `/` ou será normalizada pelo cliente. A variante `debug` permite HTTP local; a variante `release` exige HTTPS. Sem essa propriedade, o login informa que a URL precisa ser configurada.
+
+O cadastro cria a conta, mas não inicia sessão. Após cadastrar, volte ao login e entre com e-mail e senha. O app só guarda token e ID quando a consulta de perfil também tiver sucesso; uma resposta `401` exige novo login.
