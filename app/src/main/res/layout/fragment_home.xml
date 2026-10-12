@@ -29,42 +29,73 @@
             android:textColor="@color/text_grey"
             android:textSize="14sp" />
 
-        <LinearLayout
-            android:id="@+id/home_impact_banner"
+        <TextView
+            android:id="@+id/home_profile_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/text_grey"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_profile_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/home_points_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:background="@drawable/bg_banner_dark_green"
             android:orientation="vertical"
-            android:padding="18dp"
-            android:visibility="gone">
+            android:padding="18dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:letterSpacing="0.06"
-                android:text="SEU IMPACTO ESTÁ CRESCENDO"
-                android:textColor="@color/thumb_peach"
+                android:text="SEUS PONTOS"
+                android:textColor="@color/card_light_green"
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tv_impact_kg"
+                android:id="@+id/tv_home_points"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="1,2 kg"
+                android:text="— pts"
                 android:textColor="@color/white"
                 android:textSize="26sp"
                 android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="de CO2 evitado este mês"
-                android:textColor="@color/card_light_green"
-                android:textSize="12sp" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/home_points_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Carregando saldo..."
+            android:textColor="@color/text_grey" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_points_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_points_open"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ver meus pontos"
+            android:textAllCaps="false" />
 
         <TextView
             android:layout_width="match_parent"
@@ -149,6 +180,14 @@
             android:layout_height="wrap_content"
             android:text="Tentar novamente"
             android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_stores_open"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ver todas as lojas"
+            android:textAllCaps="false" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
