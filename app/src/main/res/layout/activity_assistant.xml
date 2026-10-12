@@ -54,7 +54,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Assistente Mottainai · online"
+                android:text="Aguardando API de chat"
                 android:textColor="@color/text_grey"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -91,6 +91,7 @@
             style="@style/Widget.Material3.Chip.Assist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:enabled="false"
             android:text="Ofertas" />
 
         <com.google.android.material.chip.Chip
@@ -98,6 +99,7 @@
             style="@style/Widget.Material3.Chip.Assist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:enabled="false"
             android:text="Pontos" />
 
         <com.google.android.material.chip.Chip
@@ -105,6 +107,7 @@
             style="@style/Widget.Material3.Chip.Assist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:enabled="false"
             android:text="Impacto" />
     </com.google.android.material.chip.ChipGroup>
 
@@ -133,7 +136,8 @@
                 android:layout_height="48dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:hint="Pergunte algo à Lô"
+                android:enabled="false"
+                android:hint="Chat indisponível no momento"
                 android:imeOptions="actionSend"
                 android:inputType="text"
                 android:maxLines="1"
@@ -156,6 +160,7 @@
             android:background="@drawable/bg_circle"
             android:backgroundTint="@color/primary_green"
             android:contentDescription="@null"
+            android:enabled="false"
             android:padding="12dp"
             android:src="@drawable/ic_send" />
     </LinearLayout>
