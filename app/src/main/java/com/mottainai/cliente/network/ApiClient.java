@@ -114,7 +114,10 @@ public final class ApiClient {
             }
             FirebaseAuth auth = FirebaseSupport.authIfConfigured(context);
             FirebaseUser user = auth == null ? null : auth.getCurrentUser();
-            if (user == null) return null;
+            if (user == null) {
+                expireSession();
+                return null;
+            }
             try {
                 String token = Tasks.await(user.getIdToken(true), 15, TimeUnit.SECONDS).getToken();
                 if (token == null || token.isEmpty()) return null;
@@ -131,6 +134,7 @@ public final class ApiClient {
         }
 
         private void expireSession() {
+            if (sessionManager.getClientId() == null) return;
             sessionManager.clearSession();
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (sessionManager.isLoggedIn()) return;
