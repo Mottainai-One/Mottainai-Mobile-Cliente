@@ -44,6 +44,7 @@ public class HomeFragment extends Fragment {
 
         viewModel = new ViewModelProvider(this).get(CatalogViewModel.class);
         mapPreview = view.findViewById(R.id.map_preview);
+        mapPreview.createMap(savedInstanceState);
         view.findViewById(R.id.home_offers_retry).setOnClickListener(v ->
                 viewModel.loadPromotions(0, null, null));
         view.findViewById(R.id.home_stores_retry).setOnClickListener(v ->
@@ -111,9 +112,11 @@ public class HomeFragment extends Fragment {
         for (CatalogStore store : state.data.items()) stores.add(new PartnerStore(store));
         mapPreview.setStores(stores);
         long located = stores.stream().filter(PartnerStore::hasValidLocation).count();
-        mapPreview.setVisibility(located == 0 ? View.GONE : View.VISIBLE);
+        boolean showMap = located > 0 && mapPreview.isConfigured();
+        mapPreview.setVisibility(showMap ? View.VISIBLE : View.GONE);
         status.setText(stores.isEmpty() ? "Nenhuma loja disponível."
                 : located == 0 ? "Lojas sem coordenadas. Consulte a lista."
+                : !mapPreview.isConfigured() ? "Mapa aguardando configuração da chave Google Maps."
                 : located + " lojas com localização");
         retry.setVisibility(View.GONE);
     }
@@ -125,9 +128,33 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        if (mapPreview != null) mapPreview.startMap();
+    }
+
+    @Override
     public void onPause() {
         if (mapPreview != null) mapPreview.pauseMap();
         super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        if (mapPreview != null) mapPreview.stopMap();
+        super.onStop();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        if (mapPreview != null) mapPreview.saveMapState(outState);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        if (mapPreview != null) mapPreview.mapLowMemory();
     }
 
     @Override

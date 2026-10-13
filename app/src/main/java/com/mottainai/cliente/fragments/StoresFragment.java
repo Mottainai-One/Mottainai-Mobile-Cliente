@@ -46,6 +46,7 @@ public class StoresFragment extends Fragment {
 
         viewModel = new ViewModelProvider(this).get(CatalogViewModel.class);
         mapView = view.findViewById(R.id.map_stores);
+        mapView.createMap(savedInstanceState);
         RecyclerView recyclerView = view.findViewById(R.id.rv_stores);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         storeAdapter = new StoreAdapter(store ->
@@ -92,8 +93,10 @@ public class StoresFragment extends Fragment {
         storeAdapter.setStores(stores);
         mapView.setStores(stores);
         long located = stores.stream().filter(PartnerStore::hasValidLocation).count();
-        mapView.setVisibility(located == 0 ? View.GONE : View.VISIBLE);
+        boolean showMap = located > 0 && mapView.isConfigured();
+        mapView.setVisibility(showMap ? View.VISIBLE : View.GONE);
         mapLabel.setText(located == 0 ? "Sem localização no mapa"
+                : !mapView.isConfigured() ? "Mapa aguardando configuração da chave Google Maps"
                 : located + " lojas com localização");
         status.setText(stores.isEmpty() ? "Nenhuma loja disponível no momento."
                 : stores.size() + " lojas encontradas. Endereços sem coordenadas aparecem na lista.");
@@ -108,9 +111,33 @@ public class StoresFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        if (mapView != null) mapView.startMap();
+    }
+
+    @Override
     public void onPause() {
         if (mapView != null) mapView.pauseMap();
         super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        if (mapView != null) mapView.stopMap();
+        super.onStop();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        if (mapView != null) mapView.saveMapState(outState);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        if (mapView != null) mapView.mapLowMemory();
     }
 
     @Override

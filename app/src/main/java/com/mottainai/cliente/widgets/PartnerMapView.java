@@ -1,32 +1,30 @@
 package com.mottainai.cliente.widgets;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.mottainai.cliente.BuildConfig;
 import com.mottainai.cliente.models.PartnerStore;
-
-import org.osmdroid.config.Configuration;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.BoundingBox;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.Marker;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * OpenStreetMap tiles and markers positioned at the coordinates supplied by the API.
- * Stores without coordinates remain in the list rather than receiving invented pins.
- */
 public class PartnerMapView extends FrameLayout {
 
-    private final MapView map;
-    private final List<Marker> markers = new ArrayList<>();
+    @Nullable private final MapView map;
+    private final List<PartnerStore> stores = new ArrayList<>();
+    private GoogleMap googleMap;
+    private boolean created;
 
     public PartnerMapView(Context context) {
         this(context, null);
@@ -38,49 +36,72 @@ public class PartnerMapView extends FrameLayout {
 
     public PartnerMapView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        Configuration.getInstance().setUserAgentValue(context.getPackageName());
+        if (BuildConfig.MAPS_API_KEY.trim().isEmpty()) {
+            map = null;
+            return;
+        }
         map = new MapView(context);
-        map.setTileSource(TileSourceFactory.MAPNIK);
-        map.setMultiTouchControls(true);
-        map.getController().setZoom(13.0);
         addView(map, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     }
 
+    public boolean isConfigured() {
+        return map != null;
+    }
+
+    public void createMap(@Nullable Bundle state) {
+        if (map == null || created) return;
+        map.onCreate(state);
+        created = true;
+        map.getMapAsync(ready -> {
+            if (!created) return;
+            googleMap = ready;
+            renderStores();
+        });
+    }
+
     public void setStores(List<PartnerStore> newStores) {
-        map.getOverlays().removeAll(markers);
-        markers.clear();
-        double north = -90, south = 90, east = -180, west = 180;
-        for (PartnerStore store : newStores) {
-            Double latitude = store.getLatitude();
-            Double longitude = store.getLongitude();
-            if (!store.hasValidLocation()) {
-                continue;
-            }
-            GeoPoint location = new GeoPoint(latitude, longitude);
-            Marker marker = new Marker(map);
-            marker.setPosition(location);
-            marker.setTitle(store.getName());
-            marker.setSnippet(store.getAddressLabel());
-            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            map.getOverlays().add(marker);
-            markers.add(marker);
-            north = Math.max(north, latitude);
-            south = Math.min(south, latitude);
-            east = Math.max(east, longitude);
-            west = Math.min(west, longitude);
+        stores.clear();
+        stores.addAll(newStores);
+        renderStores();
+    }
+
+    private void renderStores() {
+        if (googleMap == null) return;
+        googleMap.clear();
+        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+        List<LatLng> locations = new ArrayList<>();
+        for (PartnerStore store : stores) {
+            if (!store.hasValidLocation()) continue;
+            LatLng position = new LatLng(store.getLatitude(), store.getLongitude());
+            googleMap.addMarker(new MarkerOptions().position(position).title(store.getName())
+                    .snippet(store.getAddressLabel()));
+            bounds.include(position);
+            locations.add(position);
         }
-        map.invalidate();
-        if (markers.isEmpty()) return;
-        if (markers.size() == 1) {
-            map.getController().setZoom(15.0);
-            map.getController().setCenter(markers.get(0).getPosition());
-        } else {
-            BoundingBox bounds = new BoundingBox(north, east, south, west);
-            map.post(() -> map.zoomToBoundingBox(bounds, true, 48));
+        if (locations.size() == 1) {
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locations.get(0), 15f));
+        } else if (locations.size() > 1) {
+            LatLngBounds visibleBounds = bounds.build();
+            if (visibleBounds.northeast.latitude - visibleBounds.southwest.latitude < 0.005
+                    && visibleBounds.northeast.longitude - visibleBounds.southwest.longitude < 0.005) {
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locations.get(0), 14f));
+            } else {
+                map.post(() -> googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(visibleBounds, 48)));
+            }
         }
     }
 
-    public void resumeMap() { map.onResume(); }
-    public void pauseMap() { map.onPause(); }
-    public void releaseMap() { map.onDetach(); }
+    public void startMap() { if (map != null && created) map.onStart(); }
+    public void resumeMap() { if (map != null && created) map.onResume(); }
+    public void pauseMap() { if (map != null && created) map.onPause(); }
+    public void stopMap() { if (map != null && created) map.onStop(); }
+    public void releaseMap() {
+        if (map != null && created) {
+            map.onDestroy();
+            created = false;
+            googleMap = null;
+        }
+    }
+    public void saveMapState(Bundle state) { if (map != null && created) map.onSaveInstanceState(state); }
+    public void mapLowMemory() { if (map != null && created) map.onLowMemory(); }
 }

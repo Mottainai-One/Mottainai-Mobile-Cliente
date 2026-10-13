@@ -26,6 +26,10 @@ public class LoginClienteActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> registration = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {
+                    if (new SessionManager(this).isLoggedIn()) {
+                        openMain();
+                        return;
+                    }
                     TextView status = findViewById(R.id.text_login_status);
                     status.setText("Cadastro concluído. Entre com seu e-mail e senha.");
                     status.setVisibility(View.VISIBLE);

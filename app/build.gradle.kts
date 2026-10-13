@@ -3,6 +3,11 @@ plugins {
 }
 
 val apiBaseUrl = providers.gradleProperty("MOTTAINAI_API_BASE_URL").orElse("").get()
+val mapsApiKey = providers.gradleProperty("MOTTAINAI_MAPS_API_KEY").orElse("").get()
+
+if (file("google-services.json").exists()) {
+    pluginManager.apply("com.google.gms.google-services")
+}
 
 android {
     namespace = "com.mottainai.cliente"
@@ -19,6 +24,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_BASE_URL", "\"${apiBaseUrl.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
+        buildConfigField("String", "MAPS_API_KEY", "\"${mapsApiKey.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildTypes {
@@ -54,7 +61,9 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.livedata)
-    implementation(libs.osmdroid.android)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.play.services.maps)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

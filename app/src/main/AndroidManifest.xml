@@ -15,6 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MottainaiCliente">
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
+
         <!-- LAUNCHER: onboarding decides whether to show the intro or skip straight to MainActivity. -->
         <activity
             android:name=".activities.OnboardingActivity"

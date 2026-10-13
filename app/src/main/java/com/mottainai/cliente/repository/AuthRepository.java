@@ -4,14 +4,19 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.google.firebase.FirebaseNetworkException;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseUser;
 import com.mottainai.cliente.BuildConfig;
 import com.mottainai.cliente.network.ApiClient;
 import com.mottainai.cliente.network.ApiService;
 import com.mottainai.cliente.network.dto.CreateCustomerRequest;
+import com.mottainai.cliente.network.dto.CreateFirebaseCustomerProfileRequest;
 import com.mottainai.cliente.network.dto.CustomerProfileResponse;
-import com.mottainai.cliente.network.dto.CustomerTokenResponse;
-import com.mottainai.cliente.network.dto.LoginRequest;
+import com.mottainai.cliente.network.dto.UpdateFirebaseCustomerProfileRequest;
 import com.mottainai.cliente.network.dto.ViaCepAddress;
+import com.mottainai.cliente.utils.FirebaseSupport;
 import com.mottainai.cliente.utils.SessionManager;
 
 import retrofit2.Call;
@@ -36,11 +41,13 @@ public final class AuthRepository {
     private final ApiService api;
     private final ViaCepService viaCep;
     private final SessionManager session;
+    private final FirebaseAuth firebaseAuth;
 
     public AuthRepository(Context context) {
         session = new SessionManager(context);
         api = BuildConfig.API_BASE_URL.trim().isEmpty()
                 ? null : ApiClient.create(context, BuildConfig.API_BASE_URL);
+        firebaseAuth = FirebaseSupport.authIfConfigured(context);
         viaCep = new Retrofit.Builder()
                 .baseUrl("https://viacep.com.br/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -48,65 +55,34 @@ public final class AuthRepository {
     }
 
     public void login(String email, String password, Result<Void> result) {
-        if (api == null) {
-            result.error("Configure MOTTAINAI_API_BASE_URL para conectar o aplicativo à API.");
-            return;
-        }
-        api.login(new LoginRequest(email, password)).enqueue(new Callback<CustomerTokenResponse>() {
-            @Override public void onResponse(@NonNull Call<CustomerTokenResponse> call,
-                                             @NonNull Response<CustomerTokenResponse> response) {
-                CustomerTokenResponse body = response.body();
-                if (!response.isSuccessful() || body == null || body.accessToken == null
-                        || body.accessToken.trim().isEmpty()) {
-                    result.error(response.code() == 401 ? "E-mail ou senha incorretos."
-                            : "Não foi possível entrar (HTTP " + response.code() + ").");
-                    return;
-                }
-                api.profile("Bearer " + body.accessToken).enqueue(new Callback<CustomerProfileResponse>() {
-                    @Override public void onResponse(@NonNull Call<CustomerProfileResponse> profileCall,
-                                                     @NonNull Response<CustomerProfileResponse> profileResponse) {
-                        CustomerProfileResponse profile = profileResponse.body();
-                        if (!profileResponse.isSuccessful() || profile == null || profile.id == null) {
-                            result.error("Não foi possível carregar seu perfil. Tente entrar novamente.");
-                            return;
-                        }
-                        session.saveSession(body.accessToken, String.valueOf(profile.id));
-                        result.success(null);
-                    }
-                    @Override public void onFailure(@NonNull Call<CustomerProfileResponse> profileCall,
-                                                    @NonNull Throwable throwable) {
-                        result.error("Falha de rede ao carregar seu perfil. Tente novamente.");
-                    }
-                });
+        if (!ready(result)) return;
+        session.clearClientSession();
+        firebaseAuth.signInWithEmailAndPassword(email.trim(), password).addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                result.error(firebaseError(task.getException(), "Não foi possível entrar."));
+                return;
             }
-            @Override public void onFailure(@NonNull Call<CustomerTokenResponse> call,
-                                            @NonNull Throwable throwable) {
-                result.error("Falha de rede ao entrar. Confira sua conexão e tente novamente.");
-            }
+            loadCurrentProfile(result);
         });
     }
 
     public void register(CreateCustomerRequest request, Result<Void> result) {
-        if (api == null) {
-            result.error("Configure MOTTAINAI_API_BASE_URL para conectar o aplicativo à API.");
+        if (!ready(result)) return;
+        FirebaseUser current = firebaseAuth.getCurrentUser();
+        if (current != null && request.email.equalsIgnoreCase(current.getEmail())) {
+            createSqlProfile(request, result);
             return;
         }
-        api.register(request).enqueue(new Callback<CustomerProfileResponse>() {
-            @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
-                                             @NonNull Response<CustomerProfileResponse> response) {
-                if (response.code() == 201) {
-                    result.success(null);
-                } else if (response.code() == 409) {
-                    result.error("CPF ou e-mail já cadastrado.");
-                } else {
-                    result.error("Não foi possível cadastrar (HTTP " + response.code() + "). Confira os dados.");
-                }
-            }
-            @Override public void onFailure(@NonNull Call<CustomerProfileResponse> call,
-                                            @NonNull Throwable throwable) {
-                result.error("Falha de rede ao cadastrar. Tente novamente.");
-            }
-        });
+        session.clearClientSession();
+        if (current != null) firebaseAuth.signOut();
+        firebaseAuth.createUserWithEmailAndPassword(request.email.trim(), request.password)
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        result.error(firebaseError(task.getException(), "Não foi possível criar sua conta."));
+                        return;
+                    }
+                    createSqlProfile(request, result);
+                });
     }
 
     public void loadProfile(Result<CustomerProfileResponse> result) {
@@ -114,24 +90,49 @@ public final class AuthRepository {
             result.error("Configure MOTTAINAI_API_BASE_URL para consultar seu perfil.");
             return;
         }
-        String token = session.getAuthToken();
-        if (!session.isLoggedIn() || token == null) {
+        if (firebaseAuth == null || firebaseAuth.getCurrentUser() == null || !session.isLoggedIn()) {
             result.error("Sua sessão terminou. Entre novamente.");
             return;
         }
-        api.profile("Bearer " + token).enqueue(new Callback<CustomerProfileResponse>() {
+        api.profile().enqueue(new Callback<CustomerProfileResponse>() {
             @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
                                              @NonNull Response<CustomerProfileResponse> response) {
                 CustomerProfileResponse body = response.body();
                 if (response.isSuccessful() && body != null && body.id != null) {
                     result.success(body);
                 } else {
-                    result.error("Não foi possível carregar seu perfil (HTTP " + response.code() + ").");
+                    result.error(response.code() == 404
+                            ? "Seu perfil ainda não foi sincronizado. Conclua o cadastro novamente."
+                            : "Não foi possível carregar seu perfil (HTTP " + response.code() + ").");
                 }
             }
             @Override public void onFailure(@NonNull Call<CustomerProfileResponse> call,
                                             @NonNull Throwable throwable) {
                 result.error("Falha de rede ao carregar seu perfil.");
+            }
+        });
+    }
+
+    public void updateProfile(UpdateFirebaseCustomerProfileRequest request,
+                              Result<CustomerProfileResponse> result) {
+        if (api == null) {
+            result.error("Configure MOTTAINAI_API_BASE_URL para salvar seu perfil.");
+            return;
+        }
+        api.updateProfile(request).enqueue(new Callback<CustomerProfileResponse>() {
+            @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
+                                             @NonNull Response<CustomerProfileResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    result.success(response.body());
+                } else {
+                    result.error(response.code() == 404
+                            ? "Perfil não encontrado. Entre novamente para sincronizar sua conta."
+                            : "Não foi possível salvar seu perfil (HTTP " + response.code() + ").");
+                }
+            }
+            @Override public void onFailure(@NonNull Call<CustomerProfileResponse> call,
+                                            @NonNull Throwable throwable) {
+                result.error("Falha de rede ao salvar seu perfil.");
             }
         });
     }
@@ -153,5 +154,80 @@ public final class AuthRepository {
                 result.error("Não foi possível consultar o CEP. Preencha o endereço manualmente.");
             }
         });
+    }
+
+    private boolean ready(Result<?> result) {
+        if (firebaseAuth == null) {
+            result.error("Configure o Firebase Authentication e adicione google-services.json ao app.");
+            return false;
+        }
+        if (api == null) {
+            result.error("Configure MOTTAINAI_API_BASE_URL para conectar o aplicativo à API.");
+            return false;
+        }
+        return true;
+    }
+
+    private void loadCurrentProfile(Result<Void> result) {
+        api.profile().enqueue(new Callback<CustomerProfileResponse>() {
+            @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
+                                             @NonNull Response<CustomerProfileResponse> response) {
+                CustomerProfileResponse profile = response.body();
+                if (response.isSuccessful() && profile != null && profile.id != null) {
+                    session.saveClientSession(String.valueOf(profile.id));
+                    result.success(null);
+                } else if (response.code() == 404) {
+                    result.error("Conta autenticada, mas falta concluir o cadastro do perfil. Abra ‘Criar conta’ para sincronizar seus dados.");
+                } else {
+                    result.error("Não foi possível sincronizar seu perfil (HTTP " + response.code() + "). Tente novamente.");
+                }
+            }
+            @Override public void onFailure(@NonNull Call<CustomerProfileResponse> call,
+                                            @NonNull Throwable throwable) {
+                result.error("Falha de rede ao sincronizar seu perfil. Tente novamente.");
+            }
+        });
+    }
+
+    private void createSqlProfile(CreateCustomerRequest request, Result<Void> result) {
+        CreateFirebaseCustomerProfileRequest payload = new CreateFirebaseCustomerProfileRequest(
+                request.fullName, request.cpf, request.phone, request.birthDate,
+                request.marketingConsent, request.address);
+        api.createProfile(payload).enqueue(new Callback<CustomerProfileResponse>() {
+            @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
+                                             @NonNull Response<CustomerProfileResponse> response) {
+                CustomerProfileResponse profile = response.body();
+                if (response.isSuccessful() && profile != null && profile.id != null) {
+                    session.saveClientSession(String.valueOf(profile.id));
+                    result.success(null);
+                } else if (response.code() == 409) {
+                    result.error("CPF ou e-mail já vinculado a outro cadastro.");
+                } else {
+                    result.error("Conta Firebase criada, mas não foi possível salvar seu perfil no sistema (HTTP "
+                            + response.code() + "). Corrija os dados ou tente novamente; não crie outra conta.");
+                }
+            }
+            @Override public void onFailure(@NonNull Call<CustomerProfileResponse> call,
+                                            @NonNull Throwable throwable) {
+                result.error("Conta Firebase criada, mas não foi possível sincronizar seu perfil. Tente novamente sem criar outra conta.");
+            }
+        });
+    }
+
+    private static String firebaseError(Exception exception, String fallback) {
+        if (exception instanceof FirebaseNetworkException) return "Sem conexão. Verifique sua internet.";
+        if (!(exception instanceof FirebaseAuthException)) return fallback;
+        String code = ((FirebaseAuthException) exception).getErrorCode();
+        switch (code) {
+            case "ERROR_INVALID_EMAIL": return "Informe um e-mail válido.";
+            case "ERROR_INVALID_CREDENTIAL":
+            case "ERROR_WRONG_PASSWORD":
+            case "ERROR_USER_NOT_FOUND": return "E-mail ou senha incorretos.";
+            case "ERROR_EMAIL_ALREADY_IN_USE": return "Este e-mail já possui conta. Entre ou conclua o cadastro existente.";
+            case "ERROR_WEAK_PASSWORD": return "Use uma senha mais forte (mínimo de 8 caracteres).";
+            case "ERROR_TOO_MANY_REQUESTS": return "Muitas tentativas. Aguarde um pouco e tente novamente.";
+            case "ERROR_OPERATION_NOT_ALLOWED": return "O login por e-mail ainda não foi habilitado no Firebase.";
+            default: return fallback;
+        }
     }
 }
