@@ -16,13 +16,14 @@ O aplicativo foi desenhado para consumidores que:
 
 ---
 
-## ✨ Funcionalidades Principais
+## ✨ Funcionalidades do MVP
 
-* 📍 **Mapa e Geofencing:** O aplicativo mapeia lojas parceiras próximas. Caso o cliente autorize a localização, o sistema monitora regiões em segundo plano e envia uma notificação *Push* assim que ele entra no raio de uma loja com "Queima de Estoque" ativa.
-* 🛒 **Catálogo de Promoções:** Vitrine em formato de grade exibindo os itens salvos. O cliente visualiza a foto, desconto, preço final, dias restantes de validade e a distância até o local.
-* ⭐ **Fidelidade e Gamificação (Acesso VIP):** A compra de itens "salvos do desperdício" gera Pontos Mottainai. Clientes com alta fidelidade sobem de nível e recebem **Acesso Antecipado VIP** a ofertas de lotes muito limitados, criando exclusividade e escassez.
-* 🌱 **Dashboard de Impacto Sustentável:** Tangibiliza a boa ação do usuário. Mostra a quantidade de produtos salvos, a estimativa de CO₂ evitado e o valor total economizado, permitindo o compartilhamento em redes sociais.
-* 🤖 **Agente Cliente (Chat IA):** Um assistente inteligente integrado para tirar dúvidas instantâneas sobre promoções, funcionamento dos níveis de fidelidade, lojas e o impacto sustentável do projeto.
+* **Conta:** cadastro e login por e-mail e senha no Firebase Authentication; o perfil do cliente é sincronizado com o banco SQL pela API.
+* **Catálogo:** promoções vigentes e lojas vêm da API. Imagens e descontos só são exibidos quando fornecidos pelo contrato; não há dados inventados no app.
+* **Lojas e mapa:** endereços vêm da API; o mapa usa coordenadas disponíveis e requer a chave Google Maps fornecida para o projeto.
+* **Pontos:** saldo e histórico são consultados na API. O Android não calcula pontos nem níveis.
+
+Geofencing e notificações push, impacto ambiental, resgate de recompensas e integração do chat não fazem parte deste MVP.
 
 ---
 
@@ -46,16 +47,19 @@ O **Mottainai Cliente** não atua sozinho. Ele é a ponta final de uma rede inte
 1. **A Detecção:** O Motor Preditivo (Inteligência Artificial) detecta que um produto vai vencer nas prateleiras do mercado.
 2. **A Ação:** O *Mottainai Operacional* alerta o Gerente da loja, que aprova uma promoção (ex: 50% de desconto).
 3. **A Conexão:** Essa decisão vira, instantaneamente, uma promoção no catálogo do **App Cliente**.
-4. **O Resultado:** O aplicativo notifica os clientes próximos via *Geofencing*, os clientes compram o produto, a loja evita o prejuízo, o consumidor ganha o desconto (e pontos) e o alimento é salvo do lixo.
+4. **O Resultado:** O MVP disponibiliza as promoções e os pontos que a API já registra. Geofencing, notificações e o fluxo de compra com lançamento automático de pontos ficam para uma etapa posterior.
 
 ## Configuração da API para desenvolvimento
 
-Defina `MOTTAINAI_API_BASE_URL` como propriedade Gradle, por exemplo no arquivo pessoal `C:\Users\<usuario>\.gradle\gradle.properties`:
+No arquivo pessoal `C:\Users\<usuario>\.gradle\gradle.properties`, configure a URL da API e a chave Maps liberada para o projeto:
 
 ```properties
 MOTTAINAI_API_BASE_URL=http://10.0.2.2:8080/
+MOTTAINAI_MAPS_API_KEY=<chave fornecida pelo professor>
 ```
 
-No emulador Android, `10.0.2.2` aponta para a máquina de desenvolvimento. Em aparelho físico, use um endereço acessível pelo aparelho. A URL precisa terminar em `/` ou será normalizada pelo cliente. A variante `debug` permite HTTP local; a variante `release` exige HTTPS. Sem essa propriedade, o login informa que a URL precisa ser configurada.
+No emulador Android, `10.0.2.2` aponta para a máquina de desenvolvimento. Em aparelho físico, use um endereço acessível pelo aparelho. A URL precisa terminar em `/` ou será normalizada pelo cliente. A variante `debug` permite HTTP local; a variante `release` exige HTTPS. Sem a propriedade da API, as consultas do app não funcionam; sem a chave Maps, a tela de mapa informa que falta configuração e continua exibindo os endereços.
 
-O cadastro cria a conta, mas não inicia sessão. Após cadastrar, volte ao login e entre com e-mail e senha. O app só guarda token e ID quando a consulta de perfil também tiver sucesso; uma resposta `401` exige novo login.
+No Firebase Console, registre o app Android com o pacote `com.mottainai.cliente`, coloque `google-services.json` diretamente em `app/` e habilite o provedor **E-mail/senha** em Authentication. O arquivo de configuração é ignorado pelo Git.
+
+No cadastro, o Firebase cria a identidade e a API grava o perfil no SQL. O app só conclui o acesso quando essa sincronização retorna o ID do cliente. Se a sincronização falhar, tente novamente com a mesma conta Firebase; não crie outra conta. O app envia o Firebase ID token à API e não persiste token ou senha nas preferências locais. A API deve estar configurada com `FIREBASE_PROJECT_ID=mottainai-cliente` e com o schema SQL provisionado pelo repositório do banco.
