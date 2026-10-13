@@ -26,19 +26,19 @@ public class LoyaltyRepository {
                 LoyaltyService.class);
     }
 
-    public void account(String customerId, CatalogRepository.Result<LoyaltyAccount> result) {
+    public void account(CatalogRepository.Result<LoyaltyAccount> result) {
         if (unavailable(result)) return;
-        enqueue(service.account(customerId), result);
+        enqueue(service.account(), result);
     }
 
-    public void transactions(String customerId, LocalDate month,
+    public void transactions(LocalDate month,
                              CatalogRepository.Result<List<LoyaltyTransaction>> result) {
         if (unavailable(result)) return;
         LocalDate from = month.withDayOfMonth(1);
         LocalDateTime start = from.atStartOfDay();
         // The API's Between query includes both bounds; avoid duplicating midnight in the next window.
         LocalDateTime end = from.plusMonths(1).atStartOfDay().minusNanos(1);
-        enqueue(service.transactions(customerId, start.toString(), end.toString()), result);
+        enqueue(service.transactions(start.toString(), end.toString()), result);
     }
 
     private <T> boolean unavailable(CatalogRepository.Result<T> result) {

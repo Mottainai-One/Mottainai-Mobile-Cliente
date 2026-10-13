@@ -31,12 +31,12 @@ public class LoyaltyViewModel extends AndroidViewModel {
     public LiveData<LoadState<LoyaltyAccount>> account() { return account; }
     public LiveData<LoadState<List<LoyaltyTransaction>>> transactions() { return transactions; }
 
-    public void loadAccount(String id) {
+    public void loadAccount() {
         account.setValue(LoadState.loading());
-        repository.account(id, account::setValue);
+        repository.account(account::setValue);
     }
 
-    public void loadRecentTransactions(String id) {
+    public void loadRecentTransactions() {
         int request = ++historyRequest;
         transactions.setValue(LoadState.loading());
         List<LoyaltyTransaction> collected = new ArrayList<>();
@@ -44,7 +44,7 @@ public class LoyaltyViewModel extends AndroidViewModel {
         LoadState<?>[] firstError = {null};
         LocalDate month = LocalDate.now().withDayOfMonth(1).minusMonths(5);
         for (int i = 0; i < 6; i++) {
-            repository.transactions(id, month.plusMonths(i), state -> {
+            repository.transactions(month.plusMonths(i), state -> {
                 if (request != historyRequest) return;
                 if (state.status == LoadState.Status.SUCCESS) {
                     collected.addAll(state.data);

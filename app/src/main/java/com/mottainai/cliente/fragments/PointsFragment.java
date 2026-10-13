@@ -19,7 +19,6 @@ import com.mottainai.cliente.models.PointsActivityEntry;
 import com.mottainai.cliente.network.dto.LoyaltyAccount;
 import com.mottainai.cliente.network.dto.LoyaltyTransaction;
 import com.mottainai.cliente.repository.LoadState;
-import com.mottainai.cliente.utils.SessionManager;
 import com.mottainai.cliente.viewmodel.LoyaltyViewModel;
 
 import java.util.ArrayList;
@@ -30,7 +29,6 @@ public class PointsFragment extends Fragment {
 
     private LoyaltyViewModel viewModel;
     private PointsActivityAdapter adapter;
-    private String customerId;
 
     @Nullable
     @Override
@@ -44,26 +42,18 @@ public class PointsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(LoyaltyViewModel.class);
-        customerId = new SessionManager(requireContext()).getClientId();
         RecyclerView recyclerView = view.findViewById(R.id.rv_activity);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new PointsActivityAdapter();
         recyclerView.setAdapter(adapter);
         view.findViewById(R.id.points_balance_retry).setOnClickListener(v ->
-                viewModel.loadAccount(customerId));
+                viewModel.loadAccount());
         view.findViewById(R.id.points_history_retry).setOnClickListener(v ->
-                viewModel.loadRecentTransactions(customerId));
+                viewModel.loadRecentTransactions());
         viewModel.account().observe(getViewLifecycleOwner(), state -> renderBalance(view, state));
         viewModel.transactions().observe(getViewLifecycleOwner(), state -> renderHistory(view, state));
-        if (customerId != null && !customerId.isEmpty()) {
-            viewModel.loadAccount(customerId);
-            viewModel.loadRecentTransactions(customerId);
-        } else {
-            ((TextView) view.findViewById(R.id.points_balance_status))
-                    .setText("Entre na sua conta para ver seus pontos.");
-            ((TextView) view.findViewById(R.id.points_history_status))
-                    .setText("Entre na sua conta para ver seus lançamentos.");
-        }
+        viewModel.loadAccount();
+        viewModel.loadRecentTransactions();
 
         view.findViewById(R.id.btn_see_impact).setVisibility(View.GONE);
     }

@@ -7,15 +7,13 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
-import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface LoyaltyService {
-    @GET("api/v1/customers/{id}/loyalty")
-    Call<LoyaltyAccount> account(@Path("id") String customerId);
+    @GET("api/v1/client/loyalty/balance")
+    Call<LoyaltyAccount> account();
 
-    @GET("api/v1/customers/{id}/loyalty/transactions")
-    Call<List<LoyaltyTransaction>> transactions(@Path("id") String customerId,
-                                                  @Query("from") String from,
+    @GET("api/v1/client/loyalty/transactions")
+    Call<List<LoyaltyTransaction>> transactions(@Query("from") String from,
                                                   @Query("to") String to);
 }
