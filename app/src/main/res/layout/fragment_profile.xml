@@ -108,7 +108,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nome, e-mail e localização"
+                    android:text="Nome, telefone e consentimento"
                     android:textColor="@color/text_grey"
                     android:textSize="12sp" />
             </LinearLayout>

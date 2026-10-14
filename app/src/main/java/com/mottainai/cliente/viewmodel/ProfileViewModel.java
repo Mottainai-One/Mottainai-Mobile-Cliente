@@ -8,11 +8,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.mottainai.cliente.network.dto.CustomerProfileResponse;
+import com.mottainai.cliente.network.dto.UpdateFirebaseCustomerProfileRequest;
 import com.mottainai.cliente.repository.AuthRepository;
 
 public final class ProfileViewModel extends AndroidViewModel {
     public static final class State {
-        public enum Kind { IDLE, LOADING, READY, ERROR }
+        public enum Kind { IDLE, LOADING, SAVING, READY, ERROR }
 
         public final Kind kind;
         public final CustomerProfileResponse profile;
@@ -40,7 +41,8 @@ public final class ProfileViewModel extends AndroidViewModel {
 
     public void load() {
         State current = state.getValue();
-        if (current != null && current.kind == State.Kind.LOADING) return;
+        if (current != null && (current.kind == State.Kind.LOADING
+                || current.kind == State.Kind.SAVING)) return;
         state.setValue(new State(State.Kind.LOADING, null, null));
         repository.loadProfile(new AuthRepository.Result<CustomerProfileResponse>() {
             @Override public void success(CustomerProfileResponse profile) {
@@ -49,6 +51,22 @@ public final class ProfileViewModel extends AndroidViewModel {
 
             @Override public void error(String message) {
                 state.setValue(new State(State.Kind.ERROR, null, message));
+            }
+        });
+    }
+
+    public void save(UpdateFirebaseCustomerProfileRequest request) {
+        State current = state.getValue();
+        if (current == null || current.profile == null || current.kind == State.Kind.SAVING) return;
+        CustomerProfileResponse previous = current.profile;
+        state.setValue(new State(State.Kind.SAVING, previous, null));
+        repository.updateProfile(request, new AuthRepository.Result<CustomerProfileResponse>() {
+            @Override public void success(CustomerProfileResponse profile) {
+                state.setValue(new State(State.Kind.READY, profile, "Perfil atualizado."));
+            }
+
+            @Override public void error(String message) {
+                state.setValue(new State(State.Kind.ERROR, previous, message));
             }
         });
     }
