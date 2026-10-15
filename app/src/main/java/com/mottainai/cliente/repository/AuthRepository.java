@@ -86,6 +86,10 @@ public final class AuthRepository {
     }
 
     public void loadProfile(Result<CustomerProfileResponse> result) {
+        if (session.isDemoMode()) {
+            result.success(DemoData.customerProfile());
+            return;
+        }
         if (api == null) {
             result.error("Configure MOTTAINAI_API_BASE_URL para consultar seu perfil.");
             return;
@@ -115,6 +119,10 @@ public final class AuthRepository {
 
     public void updateProfile(UpdateFirebaseCustomerProfileRequest request,
                               Result<CustomerProfileResponse> result) {
+        if (session.isDemoMode()) {
+            result.error("A edição de perfil fica indisponível na demonstração.");
+            return;
+        }
         if (api == null) {
             result.error("Configure MOTTAINAI_API_BASE_URL para salvar seu perfil.");
             return;

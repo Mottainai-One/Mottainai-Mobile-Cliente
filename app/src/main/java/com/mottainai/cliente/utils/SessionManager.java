@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.mottainai.cliente.BuildConfig;
 
 /**
  * Stores the minimum local state needed to route the client through protected screens.
@@ -40,6 +41,7 @@ public class SessionManager {
         preferences.edit()
                 .putString(Constants.KEY_CLIENT_ID, clientId)
                 .putBoolean(Constants.KEY_SESSION_ACTIVE, true)
+                .remove(Constants.KEY_DEMO_MODE)
                 .apply();
     }
 
@@ -48,6 +50,24 @@ public class SessionManager {
         return auth != null && auth.getCurrentUser() != null
                 && preferences.getBoolean(Constants.KEY_SESSION_ACTIVE, false)
                 && !isBlank(getClientId());
+    }
+
+    public boolean isDemoMode() {
+        return BuildConfig.DEBUG && preferences.getBoolean(Constants.KEY_DEMO_MODE, false);
+    }
+
+    public boolean canBrowse() {
+        return isDemoMode() || isLoggedIn();
+    }
+
+    public void enterDemoMode() {
+        if (!BuildConfig.DEBUG) return;
+        clearClientSession();
+        preferences.edit().putBoolean(Constants.KEY_DEMO_MODE, true).apply();
+    }
+
+    public void exitDemoMode() {
+        preferences.edit().remove(Constants.KEY_DEMO_MODE).apply();
     }
 
     @Nullable
@@ -67,6 +87,7 @@ public class SessionManager {
         preferences.edit()
                 .remove(Constants.KEY_CLIENT_ID)
                 .remove(Constants.KEY_SESSION_ACTIVE)
+                .remove(Constants.KEY_DEMO_MODE)
                 .apply();
     }
 

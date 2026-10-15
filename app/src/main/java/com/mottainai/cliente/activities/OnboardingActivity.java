@@ -32,7 +32,7 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     private void goToNextScreen() {
-        Class<?> destination = sessionManager.isLoggedIn()
+        Class<?> destination = sessionManager.canBrowse()
                 ? MainActivity.class
                 : LoginClienteActivity.class;
         startActivity(new Intent(this, destination));

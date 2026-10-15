@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.mottainai.cliente.BuildConfig;
 import com.mottainai.cliente.MainActivity;
 import com.mottainai.cliente.R;
 import com.mottainai.cliente.repository.AuthRepository;
@@ -40,7 +41,8 @@ public class LoginClienteActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (new SessionManager(this).isLoggedIn()) {
+        SessionManager session = new SessionManager(this);
+        if (session.canBrowse()) {
             openMain();
             return;
         }
@@ -76,6 +78,15 @@ public class LoginClienteActivity extends AppCompatActivity {
         });
         findViewById(R.id.btn_open_registration).setOnClickListener(v ->
                 registration.launch(new Intent(this, RegisterClienteActivity.class)));
+
+        Button demo = findViewById(R.id.btn_explore_demo);
+        if (BuildConfig.DEBUG) {
+            demo.setVisibility(View.VISIBLE);
+            demo.setOnClickListener(v -> {
+                session.enterDemoMode();
+                openMain();
+            });
+        }
     }
 
     private void openMain() {

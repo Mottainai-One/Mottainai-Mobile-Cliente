@@ -62,5 +62,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Criar conta" />
+
+        <Button
+            android:id="@+id/btn_explore_demo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Explorar sem entrar · demonstração"
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>

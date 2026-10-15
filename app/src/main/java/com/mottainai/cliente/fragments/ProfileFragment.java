@@ -50,6 +50,7 @@ public class ProfileFragment extends Fragment {
         TextView initials = view.findViewById(R.id.tv_avatar_initials);
         TextView status = view.findViewById(R.id.tv_profile_status);
         View retry = view.findViewById(R.id.btn_profile_retry);
+        boolean demoMode = new SessionManager(requireContext()).isDemoMode();
         yourData.setEnabled(false);
         yourData.setOnClickListener(v -> showEditProfile(model));
         model.state().observe(getViewLifecycleOwner(), current -> {
@@ -66,12 +67,13 @@ public class ProfileFragment extends Fragment {
                 status.setText(current.message);
                 if (current.profile != null) {
                     showProfile(current.profile, name, email, initials);
-                    yourData.setEnabled(true);
+                    yourData.setEnabled(!demoMode);
                 }
             } else if (current.kind == ProfileViewModel.State.Kind.READY) {
                 showProfile(current.profile, name, email, initials);
-                status.setText(current.message == null ? "" : current.message);
-                yourData.setEnabled(true);
+                status.setText(current.message != null ? current.message
+                        : demoMode ? "Dados fictícios. Edição desativada na demonstração." : "");
+                yourData.setEnabled(!demoMode);
             }
         });
         retry.setOnClickListener(v -> model.load());
@@ -81,7 +83,9 @@ public class ProfileFragment extends Fragment {
         }
 
         view.findViewById(R.id.btn_logout).setOnClickListener(v -> {
-            new SessionManager(requireContext()).clearSession();
+            SessionManager session = new SessionManager(requireContext());
+            if (session.isDemoMode()) session.exitDemoMode();
+            else session.clearSession();
             Intent login = new Intent(requireContext(), LoginClienteActivity.class);
             login.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(login);

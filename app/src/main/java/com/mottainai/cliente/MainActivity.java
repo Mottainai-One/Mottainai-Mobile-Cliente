@@ -3,6 +3,7 @@ package com.mottainai.cliente;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +15,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.mottainai.cliente.activities.AssistantActivity;
 import com.mottainai.cliente.activities.LoginClienteActivity;
 import com.mottainai.cliente.utils.SessionManager;
 
@@ -23,7 +25,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!new SessionManager(this).isLoggedIn()) {
+        SessionManager session = new SessionManager(this);
+        if (!session.canBrowse()) {
             Intent loginIntent = new Intent(this, LoginClienteActivity.class);
             loginIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(loginIntent);
@@ -40,6 +43,13 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         NavigationUI.setupWithNavController(bottomNav, navController);
+
+        TextView demoBanner = findViewById(R.id.demo_banner);
+        demoBanner.setVisibility(session.isDemoMode() ? View.VISIBLE : View.GONE);
+        View assistantButton = findViewById(R.id.fab_assistant);
+        assistantButton.setVisibility(View.VISIBLE);
+        assistantButton.setOnClickListener(v ->
+                startActivity(new Intent(this, AssistantActivity.class)));
 
         applyWindowInsets(bottomNav);
     }

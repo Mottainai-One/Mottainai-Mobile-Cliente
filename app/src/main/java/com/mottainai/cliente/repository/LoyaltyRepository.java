@@ -7,6 +7,7 @@ import com.mottainai.cliente.network.ApiClient;
 import com.mottainai.cliente.network.LoyaltyService;
 import com.mottainai.cliente.network.dto.LoyaltyAccount;
 import com.mottainai.cliente.network.dto.LoyaltyTransaction;
+import com.mottainai.cliente.utils.SessionManager;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -19,20 +20,30 @@ import retrofit2.Response;
 
 public class LoyaltyRepository {
     private final LoyaltyService service;
+    private final SessionManager session;
 
     public LoyaltyRepository(Context context) {
+        session = new SessionManager(context);
         service = BuildConfig.API_BASE_URL.trim().isEmpty() ? null
                 : ApiClient.create(context.getApplicationContext(), BuildConfig.API_BASE_URL,
                 LoyaltyService.class);
     }
 
     public void account(CatalogRepository.Result<LoyaltyAccount> result) {
+        if (session.isDemoMode()) {
+            result.accept(LoadState.success(DemoData.loyaltyAccount()));
+            return;
+        }
         if (unavailable(result)) return;
         enqueue(service.account(), result);
     }
 
     public void transactions(LocalDate month,
                              CatalogRepository.Result<List<LoyaltyTransaction>> result) {
+        if (session.isDemoMode()) {
+            result.accept(LoadState.success(DemoData.transactions(month)));
+            return;
+        }
         if (unavailable(result)) return;
         LocalDate from = month.withDayOfMonth(1);
         LocalDateTime start = from.atStartOfDay();
