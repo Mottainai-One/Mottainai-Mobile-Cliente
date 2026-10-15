@@ -65,7 +65,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:text="Frutas da estação"
+                android:text="Carregando oferta..."
                 android:textColor="@color/text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -75,7 +75,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Mercado Verde · 0.4 km"
+                android:text=""
                 android:textColor="@color/text_grey"
                 android:textSize="14sp" />
 
@@ -91,7 +91,7 @@
                     android:id="@+id/tv_offer_discount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="-35% hoje"
+                    android:text=""
                     android:textColor="@color/accent_red"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -101,7 +101,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Disponível até o fim do dia enquanto durar o estoque."
+                    android:text=""
                     android:textColor="@color/text_grey"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -113,7 +113,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="20dp"
                 android:backgroundTint="@color/primary_green"
-                android:text="Ver rota e resgatar"
+                android:text="Ver loja"
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 app:cornerRadius="28dp" />
@@ -123,9 +123,24 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:gravity="center"
-                android:text="Ao escolher esta oferta, você evita desperdício e economiza."
+                android:text=""
                 android:textColor="@color/text_grey_light"
                 android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/offer_detail_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Carregando oferta..."
+                android:textColor="@color/text_grey" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/offer_detail_retry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tentar novamente"
+                android:visibility="gone" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -16,7 +16,7 @@
             android:id="@+id/tv_greeting"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Bom dia, Maria"
+            android:text="Olá!"
             android:textColor="@color/text_primary"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -30,12 +30,14 @@
             android:textSize="14sp" />
 
         <LinearLayout
+            android:id="@+id/home_impact_banner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:background="@drawable/bg_banner_dark_green"
             android:orientation="vertical"
-            android:padding="18dp">
+            android:padding="18dp"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -68,7 +70,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Oportunidades perto de você"
+            android:text="Oportunidades disponíveis"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -81,10 +83,25 @@
             android:orientation="horizontal" />
 
         <TextView
+            android:id="@+id/home_offers_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Carregando ofertas..."
+            android:textColor="@color/text_grey" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_offers_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Lojas parceiras próximas"
+            android:text="Lojas parceiras"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -92,19 +109,21 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp">
+            android:layout_marginTop="12dp"
+            android:minHeight="150dp"
+            android:background="@drawable/bg_map_placeholder">
 
             <com.mottainai.cliente.widgets.PartnerMapView
                 android:id="@+id/map_preview"
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
-                android:background="@drawable/bg_map_placeholder" />
+                android:visibility="gone" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="12dp"
-                android:text="3 lugares para fazer a diferença"
+                android:text="© OpenStreetMap contributors"
                 android:textColor="@color/primary_green_dark"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -118,11 +137,18 @@
                 android:background="@drawable/bg_pill_rounded"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="6dp"
-                android:text="Mercado Verde · 0.4 km"
+                android:text="Carregando lojas..."
                 android:textColor="@color/text_primary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </FrameLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_stores_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

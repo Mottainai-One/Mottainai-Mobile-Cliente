@@ -50,7 +50,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="1.280 pts"
+                android:text="Carregando..."
                 android:textColor="@color/white"
                 android:textSize="26sp"
                 android:textStyle="bold" />
@@ -61,9 +61,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="10dp"
-                android:text="Nível Semente · 72% para Florescer"
+                android:text=""
                 android:textColor="@color/card_light_green"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:visibility="gone" />
 
             <ProgressBar
                 android:id="@+id/progress_level"
@@ -73,8 +74,24 @@
                 android:indeterminate="false"
                 android:max="100"
                 android:progress="72"
-                android:progressDrawable="@drawable/bg_progress_track" />
+                android:progressDrawable="@drawable/bg_progress_track"
+                android:visibility="gone" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/points_balance_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Carregando saldo..."
+            android:textColor="@color/text_grey" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/points_balance_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="match_parent"
@@ -91,6 +108,21 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:nestedScrollingEnabled="false" />
+
+        <TextView
+            android:id="@+id/points_history_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Carregando lançamentos..."
+            android:textColor="@color/text_grey" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/points_history_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_see_impact"

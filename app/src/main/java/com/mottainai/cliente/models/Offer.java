@@ -1,5 +1,12 @@
 package com.mottainai.cliente.models;
 
+import com.mottainai.cliente.R;
+import com.mottainai.cliente.network.dto.CatalogPromotion;
+
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
+
 public class Offer {
 
     private final String id;
@@ -12,6 +19,9 @@ public class Offer {
     private final int thumbnailColorRes;
     private final String badgeLabel;
     private final String description;
+    private final String priceLabel;
+    private final String itemsLabel;
+    private final boolean catalogOffer;
 
     public Offer(String id, String title, String storeName, double distanceKm, int discountPercent,
                  String expiryLabel, String category, int thumbnailColorRes, String badgeLabel,
@@ -26,6 +36,55 @@ public class Offer {
         this.thumbnailColorRes = thumbnailColorRes;
         this.badgeLabel = badgeLabel;
         this.description = description;
+        this.priceLabel = null;
+        this.itemsLabel = null;
+        this.catalogOffer = false;
+    }
+
+    public Offer(CatalogPromotion promotion) {
+        this.id = promotion.id;
+        this.title = promotion.name == null ? "Promoção" : promotion.name;
+        this.storeName = promotion.store == null || promotion.store.name == null
+                ? "Loja parceira" : promotion.store.name;
+        this.distanceKm = 0;
+        this.discountPercent = 0;
+        this.expiryLabel = promotion.endsAt == null ? ""
+                : "Até " + promotion.endsAt.replace('T', ' ').substring(0,
+                Math.min(16, promotion.endsAt.length()));
+        this.category = null;
+        this.thumbnailColorRes = R.color.card_light_green;
+        this.badgeLabel = null;
+        this.description = promotion.description == null ? "" : promotion.description;
+        this.catalogOffer = true;
+        StringBuilder prices = new StringBuilder();
+        if (promotion.items != null) {
+            NumberFormat currency = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"));
+            for (CatalogPromotion.Item item : promotion.items) {
+                if (item.name == null) continue;
+                if (prices.length() > 0) prices.append("\n");
+                prices.append(item.name);
+                if (item.promotionalPrice != null) {
+                    prices.append(" · ");
+                    if (item.originalPrice != null) {
+                        prices.append(currency.format(item.originalPrice)).append(" → ");
+                    }
+                    prices.append(currency.format(item.promotionalPrice));
+                }
+            }
+        }
+        this.itemsLabel = prices.toString();
+        BigDecimal lowest = null;
+        if (promotion.items != null) {
+            for (CatalogPromotion.Item item : promotion.items) {
+                if (item.promotionalPrice != null &&
+                        (lowest == null || item.promotionalPrice.compareTo(lowest) < 0)) {
+                    lowest = item.promotionalPrice;
+                }
+            }
+        }
+        this.priceLabel = lowest == null ? null
+                : "A partir de " + NumberFormat.getCurrencyInstance(
+                Locale.forLanguageTag("pt-BR")).format(lowest);
     }
 
     public String getId() {
@@ -67,4 +126,8 @@ public class Offer {
     public String getDescription() {
         return description;
     }
+
+    public String getPriceLabel() { return priceLabel; }
+    public String getItemsLabel() { return itemsLabel; }
+    public boolean isCatalogOffer() { return catalogOffer; }
 }

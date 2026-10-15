@@ -78,9 +78,17 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
             badgeLabel.setVisibility(View.GONE);
         }
 
-        discount.setText(String.format(Locale.getDefault(), "-%d%%", offer.getDiscountPercent()));
+        if (offer.isCatalogOffer()) {
+            discount.setVisibility(offer.getPriceLabel() == null ? View.GONE : View.VISIBLE);
+            discount.setText(offer.getPriceLabel());
+        } else {
+            discount.setVisibility(View.VISIBLE);
+            discount.setText(String.format(Locale.getDefault(), "-%d%%", offer.getDiscountPercent()));
+        }
         title.setText(offer.getTitle());
-        store.setText(String.format(Locale.getDefault(), "%s · %.1f km", offer.getStoreName(), offer.getDistanceKm()));
+        store.setText(offer.isCatalogOffer() ? offer.getStoreName()
+                : String.format(Locale.getDefault(), "%s · %.1f km",
+                offer.getStoreName(), offer.getDistanceKm()));
         expiry.setText(offer.getExpiryLabel());
     }
 

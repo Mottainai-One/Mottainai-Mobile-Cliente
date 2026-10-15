@@ -45,8 +45,8 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
     public void onBindViewHolder(@NonNull StoreViewHolder holder, int position) {
         PartnerStore store = stores.get(position);
         holder.name.setText(store.getName());
-        String hours = store.isOpenNow() ? "aberto agora" : store.getHoursLabel();
-        holder.meta.setText(String.format(Locale.getDefault(), "%.1f km · %s", store.getDistanceKm(), hours));
+        holder.meta.setText(store.getAddressLabel().isEmpty()
+                ? "Endereço indisponível" : store.getAddressLabel());
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onStoreClick(store);

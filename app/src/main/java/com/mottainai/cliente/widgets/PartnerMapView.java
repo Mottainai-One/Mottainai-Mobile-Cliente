@@ -1,31 +1,30 @@
 package com.mottainai.cliente.widgets;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
+import android.os.Bundle;
 import android.util.AttributeSet;
-import android.view.View;
+import android.widget.FrameLayout;
 
-import androidx.core.content.ContextCompat;
+import androidx.annotation.Nullable;
 
-import com.mottainai.cliente.R;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.mottainai.cliente.BuildConfig;
 import com.mottainai.cliente.models.PartnerStore;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Stylized stand-in for a real map SDK: draws partner store pins over a flat
- * background at fixed percentage coordinates, matching the prototype design
- * (no tiles, no location permissions needed).
- */
-public class PartnerMapView extends View {
+public class PartnerMapView extends FrameLayout {
 
+    @Nullable private final MapView map;
     private final List<PartnerStore> stores = new ArrayList<>();
-    private final Paint pinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint pinDotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final float pinRadiusPx;
-    private final float pinDotRadiusPx;
+    private GoogleMap googleMap;
+    private boolean created;
 
     public PartnerMapView(Context context) {
         this(context, null);
@@ -37,29 +36,72 @@ public class PartnerMapView extends View {
 
     public PartnerMapView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        pinPaint.setColor(ContextCompat.getColor(context, R.color.accent_red));
-        pinDotPaint.setColor(ContextCompat.getColor(context, R.color.white));
-        float density = context.getResources().getDisplayMetrics().density;
-        pinRadiusPx = 8f * density;
-        pinDotRadiusPx = 3f * density;
+        if (BuildConfig.MAPS_API_KEY.trim().isEmpty()) {
+            map = null;
+            return;
+        }
+        map = new MapView(context);
+        addView(map, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+    }
+
+    public boolean isConfigured() {
+        return map != null;
+    }
+
+    public void createMap(@Nullable Bundle state) {
+        if (map == null || created) return;
+        map.onCreate(state);
+        created = true;
+        map.getMapAsync(ready -> {
+            if (!created) return;
+            googleMap = ready;
+            renderStores();
+        });
     }
 
     public void setStores(List<PartnerStore> newStores) {
         stores.clear();
         stores.addAll(newStores);
-        invalidate();
+        renderStores();
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        int width = getWidth();
-        int height = getHeight();
+    private void renderStores() {
+        if (googleMap == null) return;
+        googleMap.clear();
+        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+        List<LatLng> locations = new ArrayList<>();
         for (PartnerStore store : stores) {
-            float cx = store.getPinXPercent() * width;
-            float cy = store.getPinYPercent() * height;
-            canvas.drawCircle(cx, cy, pinRadiusPx, pinPaint);
-            canvas.drawCircle(cx, cy, pinDotRadiusPx, pinDotPaint);
+            if (!store.hasValidLocation()) continue;
+            LatLng position = new LatLng(store.getLatitude(), store.getLongitude());
+            googleMap.addMarker(new MarkerOptions().position(position).title(store.getName())
+                    .snippet(store.getAddressLabel()));
+            bounds.include(position);
+            locations.add(position);
+        }
+        if (locations.size() == 1) {
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locations.get(0), 15f));
+        } else if (locations.size() > 1) {
+            LatLngBounds visibleBounds = bounds.build();
+            if (visibleBounds.northeast.latitude - visibleBounds.southwest.latitude < 0.005
+                    && visibleBounds.northeast.longitude - visibleBounds.southwest.longitude < 0.005) {
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locations.get(0), 14f));
+            } else {
+                map.post(() -> googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(visibleBounds, 48)));
+            }
         }
     }
+
+    public void startMap() { if (map != null && created) map.onStart(); }
+    public void resumeMap() { if (map != null && created) map.onResume(); }
+    public void pauseMap() { if (map != null && created) map.onPause(); }
+    public void stopMap() { if (map != null && created) map.onStop(); }
+    public void releaseMap() {
+        if (map != null && created) {
+            map.onDestroy();
+            created = false;
+            googleMap = null;
+        }
+    }
+    public void saveMapState(Bundle state) { if (map != null && created) map.onSaveInstanceState(state); }
+    public void mapLowMemory() { if (map != null && created) map.onLowMemory(); }
 }
