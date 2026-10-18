@@ -8,8 +8,6 @@
     <color name="accent_red">#D32F2F</color>
     <color name="accent_red_dark">#B71C1C</color>
     <color name="accent_orange">#F57C00</color>
-    <color name="accent_purple">#7E57C2</color>
-    <color name="accent_purple_light">#EDE7F6</color>
 
     <!-- Text -->
     <color name="text_primary">#212121</color>
@@ -29,5 +27,4 @@
     <color name="thumb_tan">#E4C9A0</color>
     <color name="thumb_brown">#B08968</color>
     <color name="thumb_peach">#F0B79A</color>
-    <color name="thumb_purple">#C9B6D9</color>
 </resources>

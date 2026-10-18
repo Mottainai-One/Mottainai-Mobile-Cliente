@@ -3,4 +3,5 @@
     <dimen name="screen_padding">20dp</dimen>
     <dimen name="card_corner_radius">16dp</dimen>
     <dimen name="offer_thumb_size">64dp</dimen>
+    <dimen name="offer_grid_spacing">12dp</dimen>
 </resources>

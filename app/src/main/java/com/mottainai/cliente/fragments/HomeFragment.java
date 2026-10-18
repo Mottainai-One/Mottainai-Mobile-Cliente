@@ -82,7 +82,7 @@ public class HomeFragment extends Fragment {
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
             if (i > 0) {
-                params.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));
+                params.setMarginStart(getResources().getDimensionPixelSize(R.dimen.offer_grid_spacing));
             }
             card.setLayoutParams(params);
             featuredOffersLayout.addView(card);

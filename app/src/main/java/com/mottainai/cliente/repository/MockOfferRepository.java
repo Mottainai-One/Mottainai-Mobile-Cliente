@@ -30,7 +30,7 @@ public class MockOfferRepository {
                 "2 dias", "Laticínios", R.color.thumb_peach, null,
                 "Iogurte natural sem açúcar, produção própria da Horta & Cia."));
         offers.add(new Offer("pao-artesanal", "Pão artesanal", "Padaria Sol", 0.8, 30,
-                "amanhã", "Padaria", R.color.thumb_purple, null,
+                "amanhã", "Padaria", R.color.thumb_green, null,
                 "Pães de fermentação natural assados no início do dia."));
         offers.add(new Offer("queijo-minas", "Queijo minas", "Mercado Verde", 0.4, 40,
                 "3 dias", "Laticínios", R.color.thumb_brown, null,

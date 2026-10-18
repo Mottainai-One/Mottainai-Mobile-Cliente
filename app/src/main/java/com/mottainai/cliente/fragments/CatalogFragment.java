@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.os.Handler;
 import android.os.Looper;
+import android.graphics.Rect;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -58,6 +59,19 @@ public class CatalogFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.rv_offers);
         recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 2));
+        int gridSpacing = getResources().getDimensionPixelSize(R.dimen.offer_grid_spacing);
+        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull Rect outRect, @NonNull View item,
+                                       @NonNull RecyclerView parent,
+                                       @NonNull RecyclerView.State state) {
+                int position = parent.getChildAdapterPosition(item);
+                if (position < 0) return;
+                if (position % 2 == 0) outRect.right = gridSpacing;
+                int lastRow = (state.getItemCount() - 1) / 2;
+                if (position / 2 < lastRow) outRect.bottom = gridSpacing;
+            }
+        });
         offerAdapter = new OfferAdapter(offer -> {
             Bundle args = new Bundle();
             args.putString("offer_id", offer.getId());
