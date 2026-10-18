@@ -17,14 +17,16 @@ import com.mottainai.cliente.models.ChatMessage;
 import com.mottainai.cliente.repository.AssistantReplyEngine;
 import com.mottainai.cliente.repository.MockOfferRepository;
 import com.mottainai.cliente.repository.MockUserRepository;
+import com.mottainai.cliente.utils.SessionManager;
+import android.view.View;
+import android.widget.TextView;
 
 /** The "Lô" assistant chat. Replies are generated locally by {@link AssistantReplyEngine}. */
 public class AssistantActivity extends AppCompatActivity {
 
     private static final long BOT_REPLY_DELAY_MS = 600;
 
-    private final AssistantReplyEngine replyEngine = new AssistantReplyEngine(
-            new MockOfferRepository(), new MockUserRepository());
+    private AssistantReplyEngine replyEngine;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private RecyclerView recyclerView;
@@ -34,6 +36,12 @@ public class AssistantActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SessionManager session = new SessionManager(this);
+        if (!session.canBrowse()) {
+            startActivity(new Intent(this, LoginClienteActivity.class));
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_assistant);
 
         messageField = findViewById(R.id.et_message);
@@ -46,6 +54,23 @@ public class AssistantActivity extends AppCompatActivity {
             startActivity(intent);
         });
         recyclerView.setAdapter(chatAdapter);
+
+        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+        findViewById(R.id.btn_more).setVisibility(View.GONE);
+        TextView availability = findViewById(R.id.assistant_availability);
+        if (!session.isDemoMode()) {
+            availability.setText("Assistente indisponível no momento");
+            messageField.setEnabled(false);
+            findViewById(R.id.btn_send).setEnabled(false);
+            findViewById(R.id.chip_offers).setEnabled(false);
+            findViewById(R.id.chip_points).setEnabled(false);
+            findViewById(R.id.chip_impact).setEnabled(false);
+            chatAdapter.addMessage(new ChatMessage(ChatMessage.Sender.BOT,
+                    "O assistente ainda não está disponível para sua conta. Você pode consultar ofertas, lojas e pontos pelas abas do aplicativo."));
+            return;
+        }
+        availability.setText("Demonstração · respostas locais e dados fictícios");
+        replyEngine = new AssistantReplyEngine(new MockOfferRepository(), new MockUserRepository());
 
         chatAdapter.addMessage(new ChatMessage(ChatMessage.Sender.BOT,
                 "Oi, Maria! Como posso ajudar? Posso buscar ofertas, consultar seus pontos ou explicar seu impacto."));
@@ -71,6 +96,7 @@ public class AssistantActivity extends AppCompatActivity {
     }
 
     private void sendUserMessage(String text) {
+        if (replyEngine == null) return;
         chatAdapter.addMessage(new ChatMessage(ChatMessage.Sender.USER, text));
         scrollToBottom();
         handler.postDelayed(() -> {

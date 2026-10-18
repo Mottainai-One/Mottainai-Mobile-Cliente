@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Impacto demonstrativo e respostas locais do assistente ficam restritos ao modo demonstração; contas reais veem o estado de indisponibilidade.
+- Formulário de perfil mantém a edição aberta em caso de falha, com confirmação para sair da conta.
 - Home mostra nome e saldo reais, com atualização e recuperação independentes por seção; edição de perfil reflete na saudação.
 - Histórico de pontos preserva dados após falhas parciais e usa limites mensais sem sobreposição na precisão do banco.
 - Busca opcional de lojas em até 5 km, com permissões de localização contextuais e retorno à lista geral.

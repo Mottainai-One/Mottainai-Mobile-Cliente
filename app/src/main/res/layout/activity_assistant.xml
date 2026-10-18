@@ -52,9 +52,10 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/assistant_availability"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Assistente Mottainai · online"
+                android:text="Verificando disponibilidade…"
                 android:textColor="@color/text_grey"
                 android:textSize="11sp" />
         </LinearLayout>
