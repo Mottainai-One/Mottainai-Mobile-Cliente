@@ -44,7 +44,7 @@ public class ProfileFragment extends Fragment {
         view.findViewById(R.id.row_preferences).setVisibility(View.GONE);
         view.findViewById(R.id.row_help).setVisibility(View.GONE);
 
-        ProfileViewModel model = new ViewModelProvider(this).get(ProfileViewModel.class);
+        ProfileViewModel model = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
         TextView name = view.findViewById(R.id.tv_profile_name);
         TextView email = view.findViewById(R.id.tv_profile_level);
         TextView initials = view.findViewById(R.id.tv_avatar_initials);
@@ -111,7 +111,7 @@ public class ProfileFragment extends Fragment {
 
         EditText fullName = addTextField(form, "Nome completo", profile.fullName,
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS, 150);
-        EditText phone = addTextField(form, "Telefone", profile.phone,
+        EditText phone = addTextField(form, "Novo telefone (deixe vazio para manter)", null,
                 InputType.TYPE_CLASS_PHONE, 20);
         CheckBox marketingConsent = new CheckBox(context);
         marketingConsent.setText("Aceito receber comunicações e novidades");
@@ -132,8 +132,9 @@ public class ProfileFragment extends Fragment {
                         fullName.setError("Informe seu nome.");
                         return;
                     }
+                    String newPhone = phone.getText().toString().trim();
                     model.save(new UpdateFirebaseCustomerProfileRequest(name,
-                            phone.getText().toString().trim(), marketingConsent.isChecked()));
+                            newPhone.isEmpty() ? null : newPhone, marketingConsent.isChecked()));
                     dialog.dismiss();
                 }));
         dialog.show();

@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.mottainai.cliente.BuildConfig;
 import com.mottainai.cliente.network.ApiClient;
 import com.mottainai.cliente.network.ApiService;
@@ -164,6 +165,7 @@ public final class AuthRepository {
                     return;
                 }
                 if (response.isSuccessful() && body != null && body.id != null) {
+                    populateDisplayIdentity(body);
                     result.success(body);
                 } else {
                     result.error(response.code() == 404
@@ -199,7 +201,15 @@ public final class AuthRepository {
                 if (!isCurrentUser(uid)) {
                     result.error("Sua conta mudou. Entre novamente.");
                 } else if (response.isSuccessful() && response.body() != null) {
-                    result.success(response.body());
+                    saveDisplayName(uid, request.fullName, new Result<Void>() {
+                        @Override public void success(Void ignored) {
+                            populateDisplayIdentity(response.body());
+                            result.success(response.body());
+                        }
+                        @Override public void error(String message) {
+                            result.error("Dados salvos no sistema, mas o nome de exibição não foi atualizado. " + message);
+                        }
+                    });
                 } else {
                     result.error(response.code() == 404
                             ? "Perfil não encontrado. Entre novamente para sincronizar sua conta."
@@ -298,8 +308,15 @@ public final class AuthRepository {
                 }
                 if (ProfileSyncStatus.from(response.code(), profile == null ? null : profile.id)
                         == ProfileSyncStatus.READY) {
-                    session.saveClientSession(String.valueOf(profile.id), uid);
-                    result.success(null);
+                    saveDisplayName(uid, request.fullName, new Result<Void>() {
+                        @Override public void success(Void ignored) {
+                            session.saveClientSession(String.valueOf(profile.id), uid);
+                            result.success(null);
+                        }
+                        @Override public void error(String message) {
+                            result.error("Perfil criado no sistema. Tente novamente para concluir seu nome de exibição. " + message);
+                        }
+                    });
                 } else if (response.code() == 409) {
                     result.error("CPF ou e-mail já vinculado a outro cadastro.");
                 } else {
@@ -317,6 +334,32 @@ public final class AuthRepository {
     private boolean isCurrentUser(String uid) {
         FirebaseUser current = firebaseAuth.getCurrentUser();
         return current != null && current.getUid().equals(uid);
+    }
+
+    private void populateDisplayIdentity(CustomerProfileResponse profile) {
+        FirebaseUser current = firebaseAuth.getCurrentUser();
+        if (current == null) return;
+        profile.fullName = current.getDisplayName();
+        profile.email = current.getEmail();
+    }
+
+    private void saveDisplayName(String uid, String name, Result<Void> result) {
+        if (!isCurrentUser(uid)) {
+            result.error("Sua conta mudou. Entre novamente.");
+            return;
+        }
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        if (name.trim().equals(user.getDisplayName())) {
+            result.success(null);
+            return;
+        }
+        UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
+                .setDisplayName(name.trim()).build();
+        user.updateProfile(request).addOnCompleteListener(task -> {
+            if (!isCurrentUser(uid)) result.error("Sua conta mudou. Entre novamente.");
+            else if (task.isSuccessful()) result.success(null);
+            else result.error(firebaseError(task.getException(), "Não foi possível atualizar o nome. Tente novamente."));
+        });
     }
 
     private static String firebaseError(Exception exception, String fallback) {

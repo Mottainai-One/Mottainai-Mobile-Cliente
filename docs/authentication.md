@@ -10,6 +10,8 @@ Firebase Authentication fornece a identidade por e-mail/senha ou Google. O app e
 
 O Android só ativa a sessão após receber sucesso HTTP e um ID SQL válido. Salva o ID SQL junto ao UID Firebase, sem token ou senha. Sessões anteriores sem UID precisam de nova sincronização.
 
+A API `main` em `11c6d7c` retorna dados protegidos: ID, ano de nascimento, situação e consentimento, sem nome/e-mail/telefone em texto aberto. O nome e o e-mail apresentados vêm do Firebase; cadastro e edição atualizam o display name após salvar o perfil SQL. Campos de exibição no DTO são transitórios e não interpretam tokens protegidos como nomes. Ao editar apenas nome/consentimento, o app omite `phone` para manter o token existente; essa semântica depende da correção da API na branch `fix/customer-profile-update`.
+
 ## Comportamento
 
 1. E-mail/senha e Google seguem a mesma consulta de perfil.
