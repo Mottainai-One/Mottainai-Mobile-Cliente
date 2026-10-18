@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Histórico de pontos preserva dados após falhas parciais e usa limites mensais sem sobreposição na precisão do banco.
 - Busca opcional de lojas em até 5 km, com permissões de localização contextuais e retorno à lista geral.
 - Catálogo e lojas preservam páginas carregadas e permitem abrir ofertas filtradas por loja.
 - Pins e lista compartilham detalhe da loja e ação de rota; mapa usa a atribuição nativa do Google Maps.

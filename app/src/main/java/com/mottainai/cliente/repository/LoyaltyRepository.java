@@ -11,7 +11,6 @@ import com.mottainai.cliente.utils.SessionManager;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import retrofit2.Call;
@@ -45,11 +44,8 @@ public class LoyaltyRepository {
             return;
         }
         if (unavailable(result)) return;
-        LocalDate from = month.withDayOfMonth(1);
-        LocalDateTime start = from.atStartOfDay();
-        // The API's Between query includes both bounds; avoid duplicating midnight in the next window.
-        LocalDateTime end = from.plusMonths(1).atStartOfDay().minusNanos(1);
-        enqueue(service.transactions(start.toString(), end.toString()), result);
+        LoyaltyPeriod period = new LoyaltyPeriod(month);
+        enqueue(service.transactions(period.from.toString(), period.to.toString()), result);
     }
 
     private <T> boolean unavailable(CatalogRepository.Result<T> result) {

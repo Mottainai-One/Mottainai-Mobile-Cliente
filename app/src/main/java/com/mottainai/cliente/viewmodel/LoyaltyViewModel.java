@@ -22,6 +22,8 @@ public class LoyaltyViewModel extends AndroidViewModel {
     private final MutableLiveData<LoadState<LoyaltyAccount>> account = new MutableLiveData<>();
     private final MutableLiveData<LoadState<List<LoyaltyTransaction>>> transactions = new MutableLiveData<>();
     private int historyRequest;
+    private LoyaltyAccount cachedAccount;
+    private List<LoyaltyTransaction> cachedTransactions;
 
     public LoyaltyViewModel(@NonNull Application application) {
         super(application);
@@ -32,13 +34,22 @@ public class LoyaltyViewModel extends AndroidViewModel {
     public LiveData<LoadState<List<LoyaltyTransaction>>> transactions() { return transactions; }
 
     public void loadAccount() {
-        account.setValue(LoadState.loading());
-        repository.account(account::setValue);
+        if (account.getValue() != null && account.getValue().status == LoadState.Status.LOADING) return;
+        account.setValue(LoadState.loading(cachedAccount));
+        repository.account(state -> {
+            if (state.status == LoadState.Status.SUCCESS) {
+                cachedAccount = state.data;
+                account.setValue(state);
+            } else {
+                account.setValue(LoadState.error(state.message, state.httpStatus, cachedAccount));
+            }
+        });
     }
 
     public void loadRecentTransactions() {
+        if (transactions.getValue() != null && transactions.getValue().status == LoadState.Status.LOADING) return;
         int request = ++historyRequest;
-        transactions.setValue(LoadState.loading());
+        transactions.setValue(LoadState.loading(cachedTransactions));
         List<LoyaltyTransaction> collected = new ArrayList<>();
         int[] remaining = {6};
         LoadState<?>[] firstError = {null};
@@ -52,13 +63,15 @@ public class LoyaltyViewModel extends AndroidViewModel {
                     firstError[0] = state;
                 }
                 if (--remaining[0] == 0) {
+                    collected.sort(Comparator.comparing(
+                            (LoyaltyTransaction item) -> item.createdAt == null ? "" : item.createdAt)
+                            .reversed());
                     if (firstError[0] != null) {
-                        transactions.setValue(LoadState.error(firstError[0].message,
-                                firstError[0].httpStatus));
+                        transactions.setValue(LoadState.error(
+                                "Não foi possível carregar todo o histórico. " + firstError[0].message,
+                                firstError[0].httpStatus, cachedTransactions != null ? cachedTransactions : collected));
                     } else {
-                        collected.sort(Comparator.comparing(
-                                (LoyaltyTransaction item) -> item.createdAt == null ? "" : item.createdAt)
-                                .reversed());
+                        cachedTransactions = collected;
                         transactions.setValue(LoadState.success(collected));
                     }
                 }

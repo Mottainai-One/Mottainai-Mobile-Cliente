@@ -25,6 +25,9 @@ import com.mottainai.cliente.viewmodel.LoyaltyViewModel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class PointsFragment extends Fragment {
 
@@ -42,7 +45,7 @@ public class PointsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel = new ViewModelProvider(this).get(LoyaltyViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(LoyaltyViewModel.class);
         RecyclerView recyclerView = view.findViewById(R.id.rv_activity);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new PointsActivityAdapter();
@@ -53,8 +56,8 @@ public class PointsFragment extends Fragment {
                 viewModel.loadRecentTransactions());
         viewModel.account().observe(getViewLifecycleOwner(), state -> renderBalance(view, state));
         viewModel.transactions().observe(getViewLifecycleOwner(), state -> renderHistory(view, state));
-        viewModel.loadAccount();
-        viewModel.loadRecentTransactions();
+        if (viewModel.account().getValue() == null) viewModel.loadAccount();
+        if (viewModel.transactions().getValue() == null) viewModel.loadRecentTransactions();
 
         View impactButton = view.findViewById(R.id.btn_see_impact);
         impactButton.setVisibility(View.VISIBLE);
@@ -67,11 +70,12 @@ public class PointsFragment extends Fragment {
         TextView balance = view.findViewById(R.id.tv_points_balance);
         TextView status = view.findViewById(R.id.points_balance_status);
         View retry = view.findViewById(R.id.points_balance_retry);
+        balance.setText(state.data != null && state.data.pointsBalance != null
+                ? String.format(Locale.forLanguageTag("pt-BR"), "%,d pts", state.data.pointsBalance) : "— pts");
         if (state.status == LoadState.Status.LOADING) {
             status.setText("Carregando saldo...");
             retry.setVisibility(View.GONE);
         } else if (state.status == LoadState.Status.ERROR) {
-            balance.setText("— pts");
             status.setText(state.message);
             retry.setVisibility(View.VISIBLE);
         } else {
@@ -91,6 +95,7 @@ public class PointsFragment extends Fragment {
         if (state == null) return;
         TextView status = view.findViewById(R.id.points_history_status);
         View retry = view.findViewById(R.id.points_history_retry);
+        boolean complete = state.data == null || showTransactions(state.data);
         if (state.status == LoadState.Status.LOADING) {
             status.setText("Carregando lançamentos...");
             retry.setVisibility(View.GONE);
@@ -98,22 +103,35 @@ public class PointsFragment extends Fragment {
             status.setText(state.message);
             retry.setVisibility(View.VISIBLE);
         } else {
-            List<PointsActivityEntry> entries = new ArrayList<>();
-            for (LoyaltyTransaction transaction : state.data) {
-                String label = transaction.description == null || transaction.description.isEmpty()
-                        ? transaction.transactionType : transaction.description;
-                if (transaction.createdAt != null && transaction.createdAt.length() >= 10) {
-                    String date = transaction.createdAt.substring(8, 10) + "/"
-                            + transaction.createdAt.substring(5, 7);
-                    label = (label == null ? "Lançamento" : label) + " · " + date;
-                }
-                entries.add(new PointsActivityEntry(label == null ? "Lançamento" : label,
-                        transaction.points == null ? 0 : transaction.points,
-                        R.color.card_light_green));
-            }
-            adapter.setEntries(entries);
-            status.setText(entries.isEmpty() ? "Nenhum lançamento nos últimos seis meses." : "");
+            status.setText(!complete ? "Alguns lançamentos retornaram incompletos. Tente atualizar o histórico."
+                    : state.data.isEmpty() ? "Nenhum lançamento nos últimos seis meses." : "");
             retry.setVisibility(View.GONE);
         }
+    }
+
+    private boolean showTransactions(List<LoyaltyTransaction> transactions) {
+        List<PointsActivityEntry> entries = new ArrayList<>();
+        boolean complete = true;
+        for (LoyaltyTransaction transaction : transactions) {
+            if (transaction == null || transaction.points == null) {
+                complete = false;
+                continue;
+            }
+            String label = transaction.description == null || transaction.description.isEmpty()
+                    ? transaction.transactionType : transaction.description;
+            if (transaction.createdAt != null && transaction.createdAt.length() >= 10) {
+                try {
+                    String date = LocalDate.parse(transaction.createdAt.substring(0, 10))
+                            .format(DateTimeFormatter.ofPattern("dd/MM", Locale.forLanguageTag("pt-BR")));
+                    label = (label == null ? "Lançamento" : label) + " · " + date;
+                } catch (DateTimeParseException exception) {
+                    complete = false;
+                }
+            }
+            entries.add(new PointsActivityEntry(label == null ? "Lançamento" : label,
+                    transaction.points, R.color.card_light_green));
+        }
+        adapter.setEntries(entries);
+        return complete;
     }
 }
