@@ -43,14 +43,15 @@ public final class ProfileViewModel extends AndroidViewModel {
         State current = state.getValue();
         if (current != null && (current.kind == State.Kind.LOADING
                 || current.kind == State.Kind.SAVING)) return;
-        state.setValue(new State(State.Kind.LOADING, null, null));
+        CustomerProfileResponse previous = current == null ? null : current.profile;
+        state.setValue(new State(State.Kind.LOADING, previous, null));
         repository.loadProfile(new AuthRepository.Result<CustomerProfileResponse>() {
             @Override public void success(CustomerProfileResponse profile) {
                 state.setValue(new State(State.Kind.READY, profile, null));
             }
 
             @Override public void error(String message) {
-                state.setValue(new State(State.Kind.ERROR, null, message));
+                state.setValue(new State(State.Kind.ERROR, previous, message));
             }
         });
     }
