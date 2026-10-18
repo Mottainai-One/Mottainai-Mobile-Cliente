@@ -11,7 +11,7 @@ As PRs foram abertas pelo bot após push e suas bases foram ajustadas para limit
 | 5 | [#17 — Pontos](https://github.com/Mottainai-One/Mottainai-Mobile-Cliente/pull/17) | `feat/stores-location` | 1 |
 | 6 | [#14 — Perfil/Home](https://github.com/Mottainai-One/Mottainai-Mobile-Cliente/pull/14) | `fix/loyalty-history` | 3 |
 | 7 | [#15 — Demonstração](https://github.com/Mottainai-One/Mottainai-Mobile-Cliente/pull/15) | `feat/customer-home` | 1 |
-| 8 | `fix/client-ci` — Verificação das branches encadeadas | `fix/customer-demo-isolation` | 1 |
+| 8 | [#18 — CI](https://github.com/Mottainai-One/Mottainai-Mobile-Cliente/pull/18) | `fix/customer-demo-isolation` | 2 |
 
 A edição de perfil da PR #14 depende da [PR #60 da API](https://github.com/Mottainai-One/Mottainai-Spring-Api-SQL/pull/60), que preserva o telefone protegido quando o app não reenvia o campo. Essa PR de API contém um commit e não modifica autenticação, schema ou endpoints do Operacional.
 
@@ -23,7 +23,8 @@ A PR #9 já propunha aceitar Conventional Commits com escopo; `fix/client-ci` re
 - XML, Manifest, referências de IDs e diffs conferidos estaticamente.
 - Na API, fontes e testes compilaram em checkout isolado e os 10 cenários de `CustomerServiceTest` passaram via Surefire com Mockito como javaagent.
 - O ciclo Maven completo teve bloqueio ao sobrescrever um recurso em `target` no OneDrive; não foi declarado aprovado.
-- Não foram executados build/lint Android ou testes em emulador/aparelho. Os checklists das PRs registram essas etapas como pendentes.
+- O CI aprovou `testDebugUnitTest`, `lintDebug` e `assembleDebug` nas PRs #11–#17. A execução dessas tarefas foi confirmada no log da PR #15; nenhuma compilação Android foi executada localmente. O roteiro em emulador/aparelho permanece pendente.
+- A validação antiga de commits falha porque não aceita escopos; a PR #18 corrige essa regra e habilita o workflow para bases encadeadas. Esse resultado é separado do build/testes/lint, já aprovados.
 - A URL configurada é `http://10.0.2.2:8080/`; a verificação da porta local não respondeu no limite de tempo.
 
 ## Próximas dependências
