@@ -28,6 +28,10 @@ import com.mottainai.cliente.viewmodel.ProfileViewModel;
 
 public class ProfileFragment extends Fragment {
     private CustomerProfileResponse profile;
+    private AlertDialog editDialog;
+    private LinearLayout editForm;
+    private TextView editStatus;
+    private boolean savingProfile;
 
     @Nullable
     @Override
@@ -75,6 +79,7 @@ public class ProfileFragment extends Fragment {
                         : demoMode ? "Dados fictícios. Edição desativada na demonstração." : "");
                 yourData.setEnabled(!demoMode);
             }
+            renderEditState(current);
         });
         retry.setOnClickListener(v -> model.load());
         if (model.state().getValue() == null
@@ -83,12 +88,17 @@ public class ProfileFragment extends Fragment {
         }
 
         view.findViewById(R.id.btn_logout).setOnClickListener(v -> {
-            SessionManager session = new SessionManager(requireContext());
-            if (session.isDemoMode()) session.exitDemoMode();
-            else session.clearSession();
-            Intent login = new Intent(requireContext(), LoginClienteActivity.class);
-            login.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(login);
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Sair da conta?")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Sair", (dialog, which) -> {
+                        SessionManager session = new SessionManager(requireContext());
+                        if (session.isDemoMode()) session.exitDemoMode();
+                        else session.clearSession();
+                        Intent login = new Intent(requireContext(), LoginClienteActivity.class);
+                        login.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(login);
+                    }).show();
         });
     }
 
@@ -106,6 +116,7 @@ public class ProfileFragment extends Fragment {
         if (profile == null) return;
         Context context = requireContext();
         LinearLayout form = new LinearLayout(context);
+        editForm = form;
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(8), 0, dp(8), 0);
 
@@ -118,6 +129,8 @@ public class ProfileFragment extends Fragment {
         marketingConsent.setChecked(Boolean.TRUE.equals(profile.marketingConsent));
         form.addView(marketingConsent, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        editStatus = new TextView(context);
+        form.addView(editStatus);
 
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle("Editar seus dados")
@@ -125,6 +138,13 @@ public class ProfileFragment extends Fragment {
                 .setNegativeButton("Cancelar", null)
                 .setPositiveButton("Salvar", null)
                 .create();
+        editDialog = dialog;
+        dialog.setOnDismissListener(ignored -> {
+            editDialog = null;
+            editForm = null;
+            editStatus = null;
+            savingProfile = false;
+        });
         dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 .setOnClickListener(v -> {
                     String name = fullName.getText().toString().trim();
@@ -133,11 +153,31 @@ public class ProfileFragment extends Fragment {
                         return;
                     }
                     String newPhone = phone.getText().toString().trim();
+                    savingProfile = true;
                     model.save(new UpdateFirebaseCustomerProfileRequest(name,
                             newPhone.isEmpty() ? null : newPhone, marketingConsent.isChecked()));
-                    dialog.dismiss();
                 }));
         dialog.show();
+    }
+
+    private void renderEditState(ProfileViewModel.State current) {
+        if (editDialog == null || !editDialog.isShowing() || !savingProfile) return;
+        if (current.kind == ProfileViewModel.State.Kind.READY) {
+            editDialog.dismiss();
+            return;
+        }
+        boolean saving = current.kind == ProfileViewModel.State.Kind.SAVING;
+        editDialog.setCancelable(!saving);
+        editDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(!saving);
+        editDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(!saving);
+        for (int i = 0; i < editForm.getChildCount(); i++) editForm.getChildAt(i).setEnabled(!saving);
+        editStatus.setText(saving ? "Salvando seus dados…" : current.message);
+        if (!saving) savingProfile = false;
+    }
+
+    @Override public void onDestroyView() {
+        if (editDialog != null) editDialog.dismiss();
+        super.onDestroyView();
     }
 
     private EditText addTextField(LinearLayout parent, String hint, String value,
