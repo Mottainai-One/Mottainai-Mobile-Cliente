@@ -53,25 +53,37 @@ public class LoginClienteActivity extends AppCompatActivity {
         EditText password = findViewById(R.id.input_login_password);
         Button submit = findViewById(R.id.btn_login_submit);
         Button google = findViewById(R.id.btn_login_google);
+        Button retrySync = findViewById(R.id.btn_retry_profile_sync);
+        View registrationButton = findViewById(R.id.btn_open_registration);
+        View resetPassword = findViewById(R.id.btn_reset_password);
         TextView status = findViewById(R.id.text_login_status);
         AuthViewModel model = new ViewModelProvider(this).get(AuthViewModel.class);
         AuthRepository repository = new AuthRepository(this);
 
         model.state().observe(this, state -> {
-            boolean loading = state.kind == AuthViewModel.State.Kind.LOADING;
+            boolean loading = model.isBusy();
             submit.setEnabled(!loading);
             google.setEnabled(!loading);
-            status.setVisibility(loading || state.kind == AuthViewModel.State.Kind.ERROR
+            registrationButton.setEnabled(!loading);
+            resetPassword.setEnabled(!loading);
+            findViewById(R.id.btn_explore_demo).setEnabled(!loading);
+            AuthRepository.LoginResult pending = repository.pendingProfile();
+            boolean canRetry = pending != null && (state.kind == AuthViewModel.State.Kind.PROFILE_SYNC_ERROR
+                    || state.kind == AuthViewModel.State.Kind.IDLE);
+            retrySync.setVisibility(canRetry ? View.VISIBLE : View.GONE);
+            status.setVisibility(loading || canRetry || state.kind == AuthViewModel.State.Kind.ERROR
+                    || state.kind == AuthViewModel.State.Kind.RESET_SENT
                     ? View.VISIBLE : View.GONE);
-            status.setText(loading ? "Entrando…" : state.message);
+            status.setText(loading ? "Aguarde…" : state.message != null ? state.message
+                    : canRetry ? "Sua conta está autenticada. Tente concluir o acesso novamente." : "");
             if (state.kind == AuthViewModel.State.Kind.AUTHENTICATED) openMain();
             if (state.kind == AuthViewModel.State.Kind.PROFILE_REQUIRED) {
                 Intent intent = new Intent(this, RegisterClienteActivity.class);
-                intent.putExtra(RegisterClienteActivity.EXTRA_GOOGLE_PROFILE, true);
-                intent.putExtra(RegisterClienteActivity.EXTRA_GOOGLE_NAME, state.displayName);
-                intent.putExtra(RegisterClienteActivity.EXTRA_GOOGLE_EMAIL, state.email);
-                registration.launch(intent);
+                intent.putExtra(RegisterClienteActivity.EXTRA_PROFILE_REQUIRED, true);
+                intent.putExtra(RegisterClienteActivity.EXTRA_PROFILE_NAME, state.displayName);
+                intent.putExtra(RegisterClienteActivity.EXTRA_PROFILE_EMAIL, state.email);
                 model.reset();
+                registration.launch(intent);
             }
         });
         submit.setOnClickListener(v -> {
@@ -87,21 +99,26 @@ public class LoginClienteActivity extends AppCompatActivity {
             }
             model.login(repository, emailValue, passwordValue);
         });
-        findViewById(R.id.btn_open_registration).setOnClickListener(v ->
+        retrySync.setOnClickListener(v -> model.retryProfileSync(repository));
+        resetPassword.setOnClickListener(v -> {
+            String emailValue = email.getText().toString().trim();
+            if (!Patterns.EMAIL_ADDRESS.matcher(emailValue).matches()) {
+                email.setError("Informe seu e-mail para receber as instruções.");
+                return;
+            }
+            model.resetPassword(repository, emailValue);
+        });
+        registrationButton.setOnClickListener(v ->
                 registration.launch(new Intent(this, RegisterClienteActivity.class)));
         google.setOnClickListener(v -> {
-            google.setEnabled(false);
-            status.setText("Conectando ao Google…");
-            status.setVisibility(View.VISIBLE);
+            if (!model.beginGoogleSignIn()) return;
             GoogleSignInHelper.signIn(this, new GoogleSignInHelper.Callback() {
                 @Override public void onToken(String idToken) {
                     model.loginWithGoogle(repository, idToken);
                 }
 
                 @Override public void onError(String message) {
-                    google.setEnabled(true);
-                    status.setText(message);
-                    status.setVisibility(View.VISIBLE);
+                    model.googleSignInFailed(message);
                 }
             });
         });
@@ -117,6 +134,7 @@ public class LoginClienteActivity extends AppCompatActivity {
     }
 
     private void openMain() {
+        if (isFinishing()) return;
         Intent mainIntent = new Intent(this, MainActivity.class);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(mainIntent);

@@ -52,6 +52,9 @@ public final class ApiClient {
         OkHttpClient httpClient = new OkHttpClient.Builder()
                 .addInterceptor(new FirebaseTokenInterceptor(context.getApplicationContext()))
                 .authenticator(new FirebaseTokenAuthenticator(context.getApplicationContext(), sessionManager))
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(20, TimeUnit.SECONDS)
+                .callTimeout(40, TimeUnit.SECONDS)
                 .build();
         Gson gson = new GsonBuilder().create();
 
@@ -82,11 +85,21 @@ public final class ApiClient {
             Request request = chain.request();
             FirebaseAuth auth = FirebaseSupport.authIfConfigured(context);
             FirebaseUser user = auth == null ? null : auth.getCurrentUser();
+            String expectedUid = request.tag(String.class);
+            if (expectedUid != null && (user == null || !expectedUid.equals(user.getUid()))) {
+                throw new IOException("Firebase account changed before request");
+            }
             if (user == null || request.header("Authorization") != null) return chain.proceed(request);
             try {
                 String token = Tasks.await(user.getIdToken(false), 15, TimeUnit.SECONDS).getToken();
-                return chain.proceed(token == null || token.isEmpty() ? request
-                        : request.newBuilder().header("Authorization", "Bearer " + token).build());
+                if (token == null || token.isEmpty()) throw new IOException("Firebase session token unavailable");
+                FirebaseUser current = auth.getCurrentUser();
+                if (current == null || !current.getUid().equals(user.getUid())) {
+                    throw new IOException("Firebase account changed before request");
+                }
+                return chain.proceed(request.newBuilder()
+                        .tag(FirebaseUser.class, user)
+                        .header("Authorization", "Bearer " + token).build());
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
                 throw new IOException("Firebase session token unavailable", exception);
@@ -108,36 +121,53 @@ public final class ApiClient {
 
         @Override
         public Request authenticate(okhttp3.Route route, Response response) {
-            if (responseCount(response) >= 2) {
-                expireSession();
-                return null;
-            }
             FirebaseAuth auth = FirebaseSupport.authIfConfigured(context);
             FirebaseUser user = auth == null ? null : auth.getCurrentUser();
+            FirebaseUser requestedUser = response.request().tag(FirebaseUser.class);
             if (user == null) {
-                expireSession();
+                expireSession(requestedUser == null ? null : requestedUser.getUid(), true);
+                return null;
+            }
+            if (requestedUser == null || !requestedUser.getUid().equals(user.getUid())) return null;
+            if (responseCount(response) >= 2) {
+                expireSession(user.getUid(), false);
                 return null;
             }
             try {
-                String token = Tasks.await(user.getIdToken(true), 15, TimeUnit.SECONDS).getToken();
-                if (token == null || token.isEmpty()) return null;
-                return response.request().newBuilder().header("Authorization", "Bearer " + token).build();
+                // All API services share this lock so concurrent 401s reuse a refreshed token.
+                synchronized (FirebaseTokenAuthenticator.class) {
+                    FirebaseUser current = auth.getCurrentUser();
+                    if (current == null || !current.getUid().equals(user.getUid())) return null;
+                    String token = Tasks.await(user.getIdToken(false), 15, TimeUnit.SECONDS).getToken();
+                    if (token == null || ("Bearer " + token).equals(response.request().header("Authorization"))) {
+                        token = Tasks.await(user.getIdToken(true), 15, TimeUnit.SECONDS).getToken();
+                    }
+                    if (token == null || token.isEmpty()) return null;
+                    current = auth.getCurrentUser();
+                    if (current == null || !current.getUid().equals(user.getUid())) return null;
+                    return response.request().newBuilder().header("Authorization", "Bearer " + token).build();
+                }
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
                 return null;
             } catch (ExecutionException exception) {
-                if (exception.getCause() instanceof FirebaseAuthInvalidUserException) expireSession();
+                if (exception.getCause() instanceof FirebaseAuthInvalidUserException) {
+                    expireSession(user.getUid(), true);
+                }
                 return null;
             } catch (TimeoutException exception) {
                 return null;
             }
         }
 
-        private void expireSession() {
-            if (sessionManager.getClientId() == null) return;
-            sessionManager.clearSession();
+        private void expireSession(String expectedUid, boolean signOut) {
             new Handler(Looper.getMainLooper()).post(() -> {
-                if (sessionManager.isLoggedIn()) return;
+                FirebaseAuth auth = FirebaseSupport.authIfConfigured(context);
+                FirebaseUser current = auth == null ? null : auth.getCurrentUser();
+                if (current != null && (expectedUid == null || !current.getUid().equals(expectedUid))) return;
+                if (sessionManager.getClientId() == null) return;
+                if (signOut) sessionManager.clearSession();
+                else sessionManager.clearClientSession();
                 Intent login = new Intent(context, LoginClienteActivity.class);
                 login.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 context.startActivity(login);
@@ -145,8 +175,11 @@ public final class ApiClient {
         }
 
         private static int responseCount(Response response) {
-            int count = 1;
-            while ((response = response.priorResponse()) != null) count++;
+            int count = 0;
+            while (response != null) {
+                if (response.code() == 401) count++;
+                response = response.priorResponse();
+            }
             return count;
         }
     }

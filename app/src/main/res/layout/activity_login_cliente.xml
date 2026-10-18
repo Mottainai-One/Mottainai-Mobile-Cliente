@@ -55,6 +55,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:hint="Senha"
+            android:saveEnabled="false"
             android:inputType="textPassword" />
 
         <TextView
@@ -70,6 +71,19 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Entrar" />
+
+        <Button
+            android:id="@+id/btn_retry_profile_sync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tentar sincronizar novamente"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btn_reset_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Esqueci minha senha" />
 
         <Button
             android:id="@+id/btn_open_registration"

@@ -63,6 +63,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Senha (mínimo de 8 caracteres)"
+                    android:saveEnabled="false"
+                    android:inputType="textPassword"
+                    android:maxLength="100" />
+
+                <EditText
+                    android:id="@+id/input_register_password_confirm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Confirme a senha"
+                    android:saveEnabled="false"
                     android:inputType="textPassword"
                     android:maxLength="100" />
 

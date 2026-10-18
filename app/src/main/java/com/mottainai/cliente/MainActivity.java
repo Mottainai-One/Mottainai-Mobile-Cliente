@@ -21,6 +21,16 @@ import com.mottainai.cliente.utils.SessionManager;
 
 public class MainActivity extends AppCompatActivity {
 
+    @Override protected void onStart() {
+        super.onStart();
+        if (!isFinishing() && !new SessionManager(this).canBrowse()) {
+            Intent login = new Intent(this, LoginClienteActivity.class);
+            login.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(login);
+            finish();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

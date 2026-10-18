@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.ViewFlipper;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.OnBackPressedCallback;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.mottainai.cliente.R;
@@ -25,17 +26,17 @@ import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
 public final class RegisterClienteActivity extends AppCompatActivity {
-    public static final String EXTRA_GOOGLE_PROFILE = "google_profile_required";
-    public static final String EXTRA_GOOGLE_NAME = "google_profile_name";
-    public static final String EXTRA_GOOGLE_EMAIL = "google_profile_email";
+    public static final String EXTRA_PROFILE_REQUIRED = "profile_required";
+    public static final String EXTRA_PROFILE_NAME = "profile_name";
+    public static final String EXTRA_PROFILE_EMAIL = "profile_email";
 
-    private EditText name, cpf, email, password, phone, birthDate;
+    private EditText name, cpf, email, password, confirmPassword, phone, birthDate;
     private EditText cep, street, number, complement, neighborhood, city, state;
     private CheckBox marketing;
     private TextView status, stepLabel;
     private ViewFlipper pages;
     private Button googleButton, nextButton, backButton, submitButton;
-    private boolean googleProfile;
+    private boolean profileCompletion;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +48,7 @@ public final class RegisterClienteActivity extends AppCompatActivity {
         cpf = findViewById(R.id.input_register_cpf);
         email = findViewById(R.id.input_register_email);
         password = findViewById(R.id.input_register_password);
+        confirmPassword = findViewById(R.id.input_register_password_confirm);
         phone = findViewById(R.id.input_register_phone);
         birthDate = findViewById(R.id.input_register_birth_date);
         cep = findViewById(R.id.input_register_cep);
@@ -66,10 +68,21 @@ public final class RegisterClienteActivity extends AppCompatActivity {
         AuthRepository repository = new AuthRepository(this);
         AuthViewModel model = new ViewModelProvider(this).get(AuthViewModel.class);
 
-        if (getIntent().getBooleanExtra(EXTRA_GOOGLE_PROFILE, false)) {
-            enableGoogleProfile(getIntent().getStringExtra(EXTRA_GOOGLE_NAME),
-                    getIntent().getStringExtra(EXTRA_GOOGLE_EMAIL));
+        AuthRepository.LoginResult pending = repository.pendingProfile();
+        if (pending != null) {
+            enableProfileCompletion(pending.displayName, pending.email);
+        } else if (getIntent().getBooleanExtra(EXTRA_PROFILE_REQUIRED, false)) {
+            enableProfileCompletion(getIntent().getStringExtra(EXTRA_PROFILE_NAME),
+                    getIntent().getStringExtra(EXTRA_PROFILE_EMAIL));
         }
+        if (savedInstanceState != null) showStep(savedInstanceState.getInt("register_step", 0));
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() {
+                if (model.isBusy()) return;
+                if (pages.getDisplayedChild() > 0) showStep(0);
+                else finish();
+            }
+        });
 
         model.address().observe(this, address -> {
             if (address == null || !digits(cep).equals(digits(address.cep))) return;
@@ -83,15 +96,27 @@ public final class RegisterClienteActivity extends AppCompatActivity {
             if (message != null) showStatus(message);
         });
         model.state().observe(this, current -> {
-            boolean loading = current.kind == AuthViewModel.State.Kind.LOADING;
+            boolean loading = model.isBusy();
             googleButton.setEnabled(!loading);
             nextButton.setEnabled(!loading);
             backButton.setEnabled(!loading);
             submitButton.setEnabled(!loading);
+            findViewById(R.id.btn_register_find_cep).setEnabled(!loading);
+            for (EditText field : new EditText[]{name, cpf, phone, birthDate, cep, street,
+                    number, complement, neighborhood, city, state}) field.setEnabled(!loading);
+            email.setEnabled(!loading && !profileCompletion);
+            password.setEnabled(!loading && !profileCompletion);
+            confirmPassword.setEnabled(!loading && !profileCompletion);
+            marketing.setEnabled(!loading);
             if (loading) showStatus("Aguarde…");
-            if (current.kind == AuthViewModel.State.Kind.ERROR) showStatus(current.message);
+            if (current.kind == AuthViewModel.State.Kind.ERROR
+                    || current.kind == AuthViewModel.State.Kind.PROFILE_SYNC_ERROR) {
+                showStatus(current.message);
+                AuthRepository.LoginResult authenticated = repository.pendingProfile();
+                if (authenticated != null) enableProfileCompletion(authenticated.displayName, authenticated.email);
+            }
             if (current.kind == AuthViewModel.State.Kind.PROFILE_REQUIRED) {
-                enableGoogleProfile(current.displayName, current.email);
+                enableProfileCompletion(current.displayName, current.email);
                 hideStatus();
             }
             if (current.kind == AuthViewModel.State.Kind.AUTHENTICATED
@@ -102,28 +127,24 @@ public final class RegisterClienteActivity extends AppCompatActivity {
         });
 
         googleButton.setOnClickListener(v -> {
-            googleButton.setEnabled(false);
-            showStatus("Conectando ao Google…");
+            if (!model.beginGoogleSignIn()) return;
             GoogleSignInHelper.signIn(this, new GoogleSignInHelper.Callback() {
                 @Override public void onToken(String idToken) {
                     model.loginWithGoogle(repository, idToken);
                 }
 
                 @Override public void onError(String message) {
-                    googleButton.setEnabled(true);
-                    showStatus(message);
+                    model.googleSignInFailed(message);
                 }
             });
         });
         nextButton.setOnClickListener(v -> {
             if (!validatePersonalDetails()) return;
-            pages.showNext();
-            stepLabel.setText("Etapa 2 de 2 · Endereço");
+            showStep(1);
             hideStatus();
         });
         backButton.setOnClickListener(v -> {
-            pages.showPrevious();
-            stepLabel.setText("Etapa 1 de 2 · Seus dados");
+            showStep(0);
             hideStatus();
         });
         findViewById(R.id.btn_register_find_cep).setOnClickListener(v -> {
@@ -152,10 +173,12 @@ public final class RegisterClienteActivity extends AppCompatActivity {
         if (cpfDigits.length() != 11) return invalid(cpf, "Informe os 11 dígitos do CPF.");
         if (!Patterns.EMAIL_ADDRESS.matcher(emailValue).matches() || emailValue.length() > 150)
             return invalid(email, "Informe um e-mail válido.");
-        if (!googleProfile) {
+        if (!profileCompletion) {
             String passwordValue = password.getText().toString();
             if (passwordValue.length() < 8 || passwordValue.length() > 100)
                 return invalid(password, "Use uma senha de 8 a 100 caracteres.");
+            if (!passwordValue.equals(confirmPassword.getText().toString()))
+                return invalid(confirmPassword, "As senhas precisam ser iguais.");
         }
         if (phoneValue.isEmpty() || phoneValue.length() > 20) return invalid(phone, "Informe seu telefone.");
         if (!birthValue.isEmpty()) {
@@ -171,8 +194,7 @@ public final class RegisterClienteActivity extends AppCompatActivity {
 
     private CreateCustomerRequest validateAndBuild() {
         if (!validatePersonalDetails()) {
-            pages.setDisplayedChild(0);
-            stepLabel.setText("Etapa 1 de 2 · Seus dados");
+            showStep(0);
             return null;
         }
 
@@ -192,7 +214,7 @@ public final class RegisterClienteActivity extends AppCompatActivity {
         if (cityValue.isEmpty() || cityValue.length() > 100) return invalidRequest(city, "Informe a cidade.");
         if (!stateValue.matches("[A-Z]{2}")) return invalidRequest(state, "Use a sigla do estado (UF).");
 
-        String passwordValue = googleProfile ? "" : password.getText().toString();
+        String passwordValue = profileCompletion ? "" : password.getText().toString();
         String birthValue = value(birthDate);
         return new CreateCustomerRequest(value(name), digits(cpf), value(email), passwordValue,
                 value(phone), birthValue.isEmpty() ? null : birthValue, marketing.isChecked(),
@@ -200,13 +222,26 @@ public final class RegisterClienteActivity extends AppCompatActivity {
                         neighborhoodValue, cityValue, stateValue));
     }
 
-    private void enableGoogleProfile(String displayName, String googleEmail) {
-        googleProfile = true;
+    private void enableProfileCompletion(String displayName, String accountEmail) {
+        profileCompletion = true;
         if (value(name).isEmpty() && displayName != null) name.setText(displayName);
-        if (googleEmail != null) email.setText(googleEmail);
+        if (accountEmail != null) email.setText(accountEmail);
         email.setEnabled(false);
         password.setVisibility(View.GONE);
+        password.setText("");
+        confirmPassword.setVisibility(View.GONE);
+        confirmPassword.setText("");
         googleButton.setVisibility(View.GONE);
+    }
+
+    private void showStep(int step) {
+        pages.setDisplayedChild(step == 1 ? 1 : 0);
+        stepLabel.setText(step == 1 ? "Etapa 2 de 2 · Endereço" : "Etapa 1 de 2 · Seus dados");
+    }
+
+    @Override protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("register_step", pages.getDisplayedChild());
     }
 
     private boolean invalid(EditText field, String message) {

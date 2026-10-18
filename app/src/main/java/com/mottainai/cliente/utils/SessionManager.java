@@ -34,12 +34,13 @@ public class SessionManager {
         preferences.edit().putBoolean(Constants.KEY_ONBOARDING_DONE, true).apply();
     }
 
-    public void saveClientSession(@NonNull String clientId) {
+    public void saveClientSession(@NonNull String clientId, @NonNull String firebaseUid) {
         if (clientId.trim().isEmpty()) {
             throw new IllegalArgumentException("O ID do cliente é obrigatório para salvar a sessão.");
         }
         preferences.edit()
                 .putString(Constants.KEY_CLIENT_ID, clientId)
+                .putString(Constants.KEY_FIREBASE_UID, firebaseUid)
                 .putBoolean(Constants.KEY_SESSION_ACTIVE, true)
                 .remove(Constants.KEY_DEMO_MODE)
                 .apply();
@@ -48,6 +49,8 @@ public class SessionManager {
     public boolean isLoggedIn() {
         FirebaseAuth auth = FirebaseSupport.authIfConfigured(context);
         return auth != null && auth.getCurrentUser() != null
+                && auth.getCurrentUser().getUid().equals(
+                preferences.getString(Constants.KEY_FIREBASE_UID, null))
                 && preferences.getBoolean(Constants.KEY_SESSION_ACTIVE, false)
                 && !isBlank(getClientId());
     }
@@ -86,6 +89,7 @@ public class SessionManager {
     public void clearClientSession() {
         preferences.edit()
                 .remove(Constants.KEY_CLIENT_ID)
+                .remove(Constants.KEY_FIREBASE_UID)
                 .remove(Constants.KEY_SESSION_ACTIVE)
                 .remove(Constants.KEY_DEMO_MODE)
                 .apply();

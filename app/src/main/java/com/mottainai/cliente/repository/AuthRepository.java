@@ -3,6 +3,7 @@ package com.mottainai.cliente.repository;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.AuthCredential;
@@ -35,12 +36,12 @@ public final class AuthRepository {
         void error(String message);
     }
 
-    public static final class GoogleSignInResult {
+    public static final class LoginResult {
         public final boolean profileRequired;
         public final String displayName;
         public final String email;
 
-        private GoogleSignInResult(boolean profileRequired, String displayName, String email) {
+        private LoginResult(boolean profileRequired, String displayName, String email) {
             this.profileRequired = profileRequired;
             this.displayName = displayName;
             this.email = email;
@@ -68,9 +69,9 @@ public final class AuthRepository {
                 .build().create(ViaCepService.class);
     }
 
-    public void login(String email, String password, Result<Void> result) {
+    public void login(String email, String password, Result<LoginResult> result) {
         if (!ready(result)) return;
-        session.clearClientSession();
+        session.clearSession();
         firebaseAuth.signInWithEmailAndPassword(email.trim(), password).addOnCompleteListener(task -> {
             if (!task.isSuccessful()) {
                 result.error(firebaseError(task.getException(), "Não foi possível entrar."));
@@ -80,9 +81,9 @@ public final class AuthRepository {
         });
     }
 
-    public void loginWithGoogle(String idToken, Result<GoogleSignInResult> result) {
+    public void loginWithGoogle(String idToken, Result<LoginResult> result) {
         if (!ready(result)) return;
-        session.clearClientSession();
+        session.clearSession();
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
             if (!task.isSuccessful()) {
@@ -90,27 +91,34 @@ public final class AuthRepository {
                 return;
             }
 
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-            api.profile().enqueue(new Callback<CustomerProfileResponse>() {
-                @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
-                                                 @NonNull Response<CustomerProfileResponse> response) {
-                    CustomerProfileResponse profile = response.body();
-                    if (response.isSuccessful() && profile != null && profile.id != null) {
-                        session.saveClientSession(String.valueOf(profile.id));
-                        result.success(new GoogleSignInResult(false, null, null));
-                    } else if (response.code() == 404 && user != null) {
-                        result.success(new GoogleSignInResult(true, user.getDisplayName(), user.getEmail()));
-                    } else {
-                        result.error("Não foi possível sincronizar seu perfil (HTTP "
-                                + response.code() + "). Tente novamente.");
-                    }
-                }
+            loadCurrentProfile(result);
+        });
+    }
 
-                @Override public void onFailure(@NonNull Call<CustomerProfileResponse> call,
-                                                @NonNull Throwable throwable) {
-                    result.error("Falha de rede ao sincronizar seu perfil. Tente novamente.");
-                }
-            });
+    @Nullable
+    public LoginResult pendingProfile() {
+        FirebaseUser user = firebaseAuth == null ? null : firebaseAuth.getCurrentUser();
+        return user != null && !session.isLoggedIn()
+                ? new LoginResult(true, user.getDisplayName(), user.getEmail()) : null;
+    }
+
+    public void retryProfileSync(Result<LoginResult> result) {
+        if (ready(result)) loadCurrentProfile(result);
+    }
+
+    public void resetPassword(String email, Result<Void> result) {
+        if (firebaseAuth == null) {
+            result.error("O acesso à sua conta está indisponível no momento.");
+            return;
+        }
+        firebaseAuth.sendPasswordResetEmail(email.trim()).addOnCompleteListener(task -> {
+            if (task.isSuccessful() || (task.getException() instanceof FirebaseAuthException
+                    && "ERROR_USER_NOT_FOUND".equals(
+                    ((FirebaseAuthException) task.getException()).getErrorCode()))) {
+                result.success(null);
+            } else {
+                result.error(firebaseError(task.getException(), "Não foi possível enviar as instruções. Tente novamente."));
+            }
         });
     }
 
@@ -146,10 +154,15 @@ public final class AuthRepository {
             result.error("Sua sessão terminou. Entre novamente.");
             return;
         }
-        api.profile().enqueue(new Callback<CustomerProfileResponse>() {
+        String uid = firebaseAuth.getCurrentUser().getUid();
+        api.profile(uid).enqueue(new Callback<CustomerProfileResponse>() {
             @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
                                              @NonNull Response<CustomerProfileResponse> response) {
                 CustomerProfileResponse body = response.body();
+                if (!isCurrentUser(uid)) {
+                    result.error("Sua conta mudou. Entre novamente.");
+                    return;
+                }
                 if (response.isSuccessful() && body != null && body.id != null) {
                     result.success(body);
                 } else {
@@ -175,10 +188,17 @@ public final class AuthRepository {
             result.error("Configure MOTTAINAI_API_BASE_URL para salvar seu perfil.");
             return;
         }
-        api.updateProfile(request).enqueue(new Callback<CustomerProfileResponse>() {
+        if (firebaseAuth == null || firebaseAuth.getCurrentUser() == null || !session.isLoggedIn()) {
+            result.error("Sua sessão terminou. Entre novamente.");
+            return;
+        }
+        String uid = firebaseAuth.getCurrentUser().getUid();
+        api.updateProfile(request, uid).enqueue(new Callback<CustomerProfileResponse>() {
             @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
                                              @NonNull Response<CustomerProfileResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                if (!isCurrentUser(uid)) {
+                    result.error("Sua conta mudou. Entre novamente.");
+                } else if (response.isSuccessful() && response.body() != null) {
                     result.success(response.body());
                 } else {
                     result.error(response.code() == 404
@@ -224,16 +244,29 @@ public final class AuthRepository {
         return true;
     }
 
-    private void loadCurrentProfile(Result<Void> result) {
-        api.profile().enqueue(new Callback<CustomerProfileResponse>() {
+    private void loadCurrentProfile(Result<LoginResult> result) {
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        if (user == null) {
+            result.error("Sua sessão terminou. Entre novamente.");
+            return;
+        }
+        String uid = user.getUid();
+        api.profile(uid).enqueue(new Callback<CustomerProfileResponse>() {
             @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
                                              @NonNull Response<CustomerProfileResponse> response) {
                 CustomerProfileResponse profile = response.body();
-                if (response.isSuccessful() && profile != null && profile.id != null) {
-                    session.saveClientSession(String.valueOf(profile.id));
-                    result.success(null);
-                } else if (response.code() == 404) {
-                    result.error("Conta autenticada, mas falta concluir o cadastro do perfil. Abra ‘Criar conta’ para sincronizar seus dados.");
+                if (!isCurrentUser(uid)) {
+                    result.error("A conta mudou durante o acesso. Entre novamente.");
+                    return;
+                }
+                ProfileSyncStatus status = ProfileSyncStatus.from(response.code(), profile == null ? null : profile.id);
+                if (status == ProfileSyncStatus.READY) {
+                    session.saveClientSession(String.valueOf(profile.id), uid);
+                    result.success(new LoginResult(false, null, null));
+                } else if (status == ProfileSyncStatus.PROFILE_REQUIRED) {
+                    result.success(new LoginResult(true, user.getDisplayName(), user.getEmail()));
+                } else if (status == ProfileSyncStatus.INVALID_RESPONSE) {
+                    result.error("Seu perfil retornou incompleto. Tente sincronizar novamente.");
                 } else {
                     result.error("Não foi possível sincronizar seu perfil (HTTP " + response.code() + "). Tente novamente.");
                 }
@@ -246,15 +279,26 @@ public final class AuthRepository {
     }
 
     private void createSqlProfile(CreateCustomerRequest request, Result<Void> result) {
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        if (user == null || !request.email.trim().equalsIgnoreCase(user.getEmail())) {
+            result.error("Sua conta mudou. Entre novamente para concluir o cadastro.");
+            return;
+        }
+        String uid = user.getUid();
         CreateFirebaseCustomerProfileRequest payload = new CreateFirebaseCustomerProfileRequest(
                 request.fullName, request.cpf, request.phone, request.birthDate,
                 request.marketingConsent, request.address);
-        api.createProfile(payload).enqueue(new Callback<CustomerProfileResponse>() {
+        api.createProfile(payload, uid).enqueue(new Callback<CustomerProfileResponse>() {
             @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
                                              @NonNull Response<CustomerProfileResponse> response) {
                 CustomerProfileResponse profile = response.body();
-                if (response.isSuccessful() && profile != null && profile.id != null) {
-                    session.saveClientSession(String.valueOf(profile.id));
+                if (!isCurrentUser(uid)) {
+                    result.error("Sua conta mudou. Entre novamente para concluir o cadastro.");
+                    return;
+                }
+                if (ProfileSyncStatus.from(response.code(), profile == null ? null : profile.id)
+                        == ProfileSyncStatus.READY) {
+                    session.saveClientSession(String.valueOf(profile.id), uid);
                     result.success(null);
                 } else if (response.code() == 409) {
                     result.error("CPF ou e-mail já vinculado a outro cadastro.");
@@ -268,6 +312,11 @@ public final class AuthRepository {
                 result.error("Conta Firebase criada, mas não foi possível sincronizar seu perfil. Tente novamente sem criar outra conta.");
             }
         });
+    }
+
+    private boolean isCurrentUser(String uid) {
+        FirebaseUser current = firebaseAuth.getCurrentUser();
+        return current != null && current.getUid().equals(uid);
     }
 
     private static String firebaseError(Exception exception, String fallback) {
