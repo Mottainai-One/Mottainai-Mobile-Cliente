@@ -12,7 +12,10 @@ import retrofit2.http.Query;
 public interface CustomerCatalogService {
     @GET("api/v1/customer-catalog/stores")
     Call<CatalogPage<CatalogStore>> stores(@Query("page") int page, @Query("size") int size,
-                                           @Query("query") String query);
+                                           @Query("query") String query,
+                                           @Query("latitude") Double latitude,
+                                           @Query("longitude") Double longitude,
+                                           @Query("radiusKm") Double radiusKm);
 
     @GET("api/v1/customer-catalog/stores/{id}")
     Call<CatalogStore> store(@Path("id") String id);

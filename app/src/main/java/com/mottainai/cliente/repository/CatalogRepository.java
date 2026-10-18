@@ -1,6 +1,7 @@
 package com.mottainai.cliente.repository;
 
 import android.content.Context;
+import android.location.Location;
 
 import com.mottainai.cliente.BuildConfig;
 import com.mottainai.cliente.network.ApiClient;
@@ -34,11 +35,19 @@ public class CatalogRepository {
                 CustomerCatalogService.class);
     }
 
-    public void stores(int page, String query, Result<CatalogPage<CatalogStore>> result) {
+    public void stores(int page, String query, Double latitude, Double longitude, Double radiusKm,
+                         Result<CatalogPage<CatalogStore>> result) {
         if (session.isDemoMode()) {
             String normalized = normalize(query);
             List<CatalogStore> stores = new ArrayList<>();
             for (CatalogStore store : DemoData.stores()) {
+                if (latitude != null && longitude != null && radiusKm != null) {
+                    if (store.latitude == null || store.longitude == null) continue;
+                    float[] distance = new float[1];
+                    Location.distanceBetween(latitude, longitude, store.latitude.doubleValue(),
+                            store.longitude.doubleValue(), distance);
+                    if (distance[0] > radiusKm * 1000) continue;
+                }
                 String address = store.address == null ? "" : store.address.street + " " + store.address.city;
                 if (normalized.isEmpty() || (store.name + " " + address)
                         .toLowerCase(Locale.ROOT).contains(normalized)) stores.add(store);
@@ -47,7 +56,7 @@ public class CatalogRepository {
             return;
         }
         if (unavailable(result)) return;
-        enqueue(service.stores(page, 20, blankToNull(query)), result);
+        enqueue(service.stores(page, 20, blankToNull(query), latitude, longitude, radiusKm), result);
     }
 
     public void store(String id, Result<CatalogStore> result) {

@@ -31,6 +31,8 @@ public class CatalogViewModel extends AndroidViewModel {
     private int promotionPage;
     private int storePage;
     private String detailId;
+    private Double storeLatitude;
+    private Double storeLongitude;
 
     public CatalogViewModel(@NonNull Application application) {
         super(application);
@@ -46,6 +48,20 @@ public class CatalogViewModel extends AndroidViewModel {
     public int storePage() { return storePage; }
     public int nextPromotionPage() { return promotionPages == null ? 0 : promotionPages.number + 1; }
     public int nextStorePage() { return storePages == null ? 0 : storePages.number + 1; }
+    public Double storeLatitude() { return storeLatitude; }
+    public Double storeLongitude() { return storeLongitude; }
+
+    public void useStoreLocation(Double latitude, Double longitude) {
+        if (latitude != null && (longitude == null || !Double.isFinite(latitude)
+                || !Double.isFinite(longitude) || latitude < -90 || latitude > 90
+                || longitude < -180 || longitude > 180)) return;
+        storeLatitude = latitude;
+        storeLongitude = latitude == null ? null : longitude;
+        storePages = null;
+        storeRequest++;
+        stores.setValue(null);
+        loadStores(0, storeQuery);
+    }
 
     public void loadPromotions(int page, String storeId, String query) {
         String normalized = query == null ? "" : query.trim();
@@ -86,7 +102,8 @@ public class CatalogViewModel extends AndroidViewModel {
         storePage = page;
         int request = ++storeRequest;
         stores.setValue(LoadState.loading(storePages));
-        repository.stores(page, normalized, state -> {
+        repository.stores(page, normalized, storeLatitude, storeLongitude,
+                storeLatitude == null ? null : 5.0, state -> {
             if (request != storeRequest) return;
             if (state.status == LoadState.Status.SUCCESS && state.data.number == page) {
                 storePages = CatalogPages.merge(storePages, state.data, item -> item.id);

@@ -1,6 +1,7 @@
 package com.mottainai.cliente.adapters;
 
 import android.view.LayoutInflater;
+import android.location.Location;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -23,6 +24,8 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
 
     private final List<PartnerStore> stores = new ArrayList<>();
     private final OnStoreClickListener listener;
+    private Double latitude;
+    private Double longitude;
 
     public StoreAdapter(OnStoreClickListener listener) {
         this.listener = listener;
@@ -32,6 +35,11 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
         stores.clear();
         stores.addAll(newStores);
         notifyDataSetChanged();
+    }
+
+    public void setOrigin(Double latitude, Double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     @NonNull
@@ -45,8 +53,13 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
     public void onBindViewHolder(@NonNull StoreViewHolder holder, int position) {
         PartnerStore store = stores.get(position);
         holder.name.setText(store.getName());
-        holder.meta.setText(store.getAddressLabel().isEmpty()
-                ? "Endereço indisponível" : store.getAddressLabel());
+        String address = store.getAddressLabel().isEmpty() ? "Endereço indisponível" : store.getAddressLabel();
+        if (latitude != null && longitude != null && store.hasValidLocation()) {
+            float[] distance = new float[1];
+            Location.distanceBetween(latitude, longitude, store.getLatitude(), store.getLongitude(), distance);
+            address = String.format(Locale.forLanguageTag("pt-BR"), "Aprox. %.1f km · %s", distance[0] / 1000, address);
+        }
+        holder.meta.setText(address);
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onStoreClick(store);

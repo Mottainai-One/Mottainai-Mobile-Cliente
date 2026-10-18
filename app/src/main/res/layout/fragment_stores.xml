@@ -28,6 +28,26 @@
             android:textColor="@color/text_grey"
             android:textSize="13sp" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stores_use_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Buscar lojas em até 5 km" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stores_clear_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ver todas as lojas"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/stores_location_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_grey" />
+
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

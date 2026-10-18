@@ -14,6 +14,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.mottainai.cliente.BuildConfig;
 import com.mottainai.cliente.models.PartnerStore;
 
@@ -28,6 +29,7 @@ public class PartnerMapView extends FrameLayout {
     private GoogleMap googleMap;
     private boolean created;
     private Consumer<PartnerStore> onStoreSelected;
+    private LatLng userPosition;
 
     public PartnerMapView(Context context) {
         this(context, null);
@@ -77,11 +79,21 @@ public class PartnerMapView extends FrameLayout {
         onStoreSelected = listener;
     }
 
+    public void setUserPosition(Double latitude, Double longitude) {
+        userPosition = latitude == null || longitude == null ? null : new LatLng(latitude, longitude);
+    }
+
     private void renderStores() {
         if (googleMap == null) return;
         googleMap.clear();
         LatLngBounds.Builder bounds = new LatLngBounds.Builder();
         List<LatLng> locations = new ArrayList<>();
+        if (userPosition != null) {
+            googleMap.addMarker(new MarkerOptions().position(userPosition).title("Sua localização")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            bounds.include(userPosition);
+            locations.add(userPosition);
+        }
         for (PartnerStore store : stores) {
             if (!store.hasValidLocation()) continue;
             LatLng position = new LatLng(store.getLatitude(), store.getLongitude());
