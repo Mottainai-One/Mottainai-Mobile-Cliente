@@ -5,9 +5,11 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.google.firebase.FirebaseNetworkException;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.mottainai.cliente.BuildConfig;
 import com.mottainai.cliente.network.ApiClient;
 import com.mottainai.cliente.network.ApiService;
@@ -31,6 +33,18 @@ public final class AuthRepository {
     public interface Result<T> {
         void success(T value);
         void error(String message);
+    }
+
+    public static final class GoogleSignInResult {
+        public final boolean profileRequired;
+        public final String displayName;
+        public final String email;
+
+        private GoogleSignInResult(boolean profileRequired, String displayName, String email) {
+            this.profileRequired = profileRequired;
+            this.displayName = displayName;
+            this.email = email;
+        }
     }
 
     private interface ViaCepService {
@@ -63,6 +77,40 @@ public final class AuthRepository {
                 return;
             }
             loadCurrentProfile(result);
+        });
+    }
+
+    public void loginWithGoogle(String idToken, Result<GoogleSignInResult> result) {
+        if (!ready(result)) return;
+        session.clearClientSession();
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        firebaseAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                result.error(firebaseError(task.getException(), "Não foi possível entrar com Google."));
+                return;
+            }
+
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            api.profile().enqueue(new Callback<CustomerProfileResponse>() {
+                @Override public void onResponse(@NonNull Call<CustomerProfileResponse> call,
+                                                 @NonNull Response<CustomerProfileResponse> response) {
+                    CustomerProfileResponse profile = response.body();
+                    if (response.isSuccessful() && profile != null && profile.id != null) {
+                        session.saveClientSession(String.valueOf(profile.id));
+                        result.success(new GoogleSignInResult(false, null, null));
+                    } else if (response.code() == 404 && user != null) {
+                        result.success(new GoogleSignInResult(true, user.getDisplayName(), user.getEmail()));
+                    } else {
+                        result.error("Não foi possível sincronizar seu perfil (HTTP "
+                                + response.code() + "). Tente novamente.");
+                    }
+                }
+
+                @Override public void onFailure(@NonNull Call<CustomerProfileResponse> call,
+                                                @NonNull Throwable throwable) {
+                    result.error("Falha de rede ao sincronizar seu perfil. Tente novamente.");
+                }
+            });
         });
     }
 
@@ -234,7 +282,10 @@ public final class AuthRepository {
             case "ERROR_EMAIL_ALREADY_IN_USE": return "Este e-mail já possui conta. Entre ou conclua o cadastro existente.";
             case "ERROR_WEAK_PASSWORD": return "Use uma senha mais forte (mínimo de 8 caracteres).";
             case "ERROR_TOO_MANY_REQUESTS": return "Muitas tentativas. Aguarde um pouco e tente novamente.";
-            case "ERROR_OPERATION_NOT_ALLOWED": return "O login por e-mail ainda não foi habilitado no Firebase.";
+            case "ERROR_OPERATION_NOT_ALLOWED":
+                return "O provedor de login utilizado ainda não foi habilitado no Firebase.";
+            case "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL":
+                return "Este e-mail já usa outro método de acesso. Entre com o método original.";
             default: return fallback;
         }
     }

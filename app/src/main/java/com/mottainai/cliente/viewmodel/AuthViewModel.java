@@ -10,13 +10,21 @@ import com.mottainai.cliente.repository.AuthRepository;
 
 public final class AuthViewModel extends ViewModel {
     public static final class State {
-        public enum Kind { IDLE, LOADING, AUTHENTICATED, REGISTERED, ERROR }
+        public enum Kind { IDLE, LOADING, AUTHENTICATED, PROFILE_REQUIRED, REGISTERED, ERROR }
         public final Kind kind;
         public final String message;
+        public final String displayName;
+        public final String email;
 
         private State(Kind kind, String message) {
+            this(kind, message, null, null);
+        }
+
+        private State(Kind kind, String message, String displayName, String email) {
             this.kind = kind;
             this.message = message;
+            this.displayName = displayName;
+            this.email = email;
         }
     }
 
@@ -38,6 +46,24 @@ public final class AuthViewModel extends ViewModel {
                 state.setValue(new State(State.Kind.ERROR, message));
             }
         });
+    }
+
+    public void loginWithGoogle(AuthRepository repository, String idToken) {
+        state.setValue(new State(State.Kind.LOADING, null));
+        repository.loginWithGoogle(idToken, new AuthRepository.Result<AuthRepository.GoogleSignInResult>() {
+            @Override public void success(AuthRepository.GoogleSignInResult result) {
+                state.setValue(result.profileRequired
+                        ? new State(State.Kind.PROFILE_REQUIRED, null, result.displayName, result.email)
+                        : new State(State.Kind.AUTHENTICATED, null));
+            }
+            @Override public void error(String message) {
+                state.setValue(new State(State.Kind.ERROR, message));
+            }
+        });
+    }
+
+    public void reset() {
+        state.setValue(new State(State.Kind.IDLE, null));
     }
 
     public void register(AuthRepository repository, CreateCustomerRequest request) {

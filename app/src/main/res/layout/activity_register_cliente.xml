@@ -3,44 +3,202 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="24dp">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Criar conta"
             android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+
         <TextView
+            android:id="@+id/text_register_step"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Seus dados"
+            android:text="Etapa 1 de 2 · Seus dados"
             android:textAppearance="?attr/textAppearanceTitleMedium" />
-        <EditText android:id="@+id/input_register_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nome completo" android:inputType="textPersonName" android:maxLength="150" />
-        <EditText android:id="@+id/input_register_cpf" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="CPF (11 dígitos)" android:inputType="number" android:maxLength="11" />
-        <EditText android:id="@+id/input_register_email" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="E-mail" android:inputType="textEmailAddress" android:maxLength="150" />
-        <EditText android:id="@+id/input_register_password" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Senha (mínimo de 8 caracteres)" android:inputType="textPassword" android:maxLength="100" />
-        <EditText android:id="@+id/input_register_phone" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Telefone" android:inputType="phone" android:maxLength="20" />
-        <EditText android:id="@+id/input_register_birth_date" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Data de nascimento (AAAA-MM-DD, opcional)" android:inputType="text" android:maxLength="10" />
+
+        <ViewFlipper
+            android:id="@+id/register_pages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/input_register_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Nome completo"
+                    android:inputType="textPersonName"
+                    android:maxLength="150" />
+
+                <EditText
+                    android:id="@+id/input_register_cpf"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="CPF (11 dígitos)"
+                    android:inputType="number"
+                    android:maxLength="11" />
+
+                <EditText
+                    android:id="@+id/input_register_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="E-mail"
+                    android:inputType="textEmailAddress"
+                    android:maxLength="150" />
+
+                <EditText
+                    android:id="@+id/input_register_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Senha (mínimo de 8 caracteres)"
+                    android:inputType="textPassword"
+                    android:maxLength="100" />
+
+                <EditText
+                    android:id="@+id/input_register_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Telefone"
+                    android:inputType="phone"
+                    android:maxLength="20" />
+
+                <EditText
+                    android:id="@+id/input_register_birth_date"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Data de nascimento (AAAA-MM-DD, opcional)"
+                    android:inputType="text"
+                    android:maxLength="10" />
+
+                <Button
+                    android:id="@+id/btn_register_google"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Continuar com Google" />
+
+                <Button
+                    android:id="@+id/btn_register_next"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Continuar" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Informe seu endereço para encontrar lojas próximas."
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <EditText
+                    android:id="@+id/input_register_cep"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="CEP (8 dígitos)"
+                    android:inputType="number"
+                    android:maxLength="8" />
+
+                <Button
+                    android:id="@+id/btn_register_find_cep"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Buscar CEP" />
+
+                <EditText
+                    android:id="@+id/input_register_street"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Rua"
+                    android:inputType="textPostalAddress"
+                    android:maxLength="150" />
+
+                <EditText
+                    android:id="@+id/input_register_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Número"
+                    android:inputType="text"
+                    android:maxLength="10" />
+
+                <EditText
+                    android:id="@+id/input_register_complement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Complemento (opcional)"
+                    android:inputType="text"
+                    android:maxLength="100" />
+
+                <EditText
+                    android:id="@+id/input_register_neighborhood"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Bairro"
+                    android:inputType="textPostalAddress"
+                    android:maxLength="100" />
+
+                <EditText
+                    android:id="@+id/input_register_city"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Cidade"
+                    android:inputType="textPostalAddress"
+                    android:maxLength="100" />
+
+                <EditText
+                    android:id="@+id/input_register_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="UF"
+                    android:inputType="textCapCharacters"
+                    android:maxLength="2" />
+
+                <CheckBox
+                    android:id="@+id/check_register_marketing"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Aceito receber novidades e ofertas" />
+
+                <Button
+                    android:id="@+id/btn_register_back"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Voltar" />
+
+                <Button
+                    android:id="@+id/btn_register_submit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Finalizar cadastro" />
+            </LinearLayout>
+        </ViewFlipper>
+
         <TextView
+            android:id="@+id/text_register_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Endereço"
-            android:textAppearance="?attr/textAppearanceTitleMedium" />
-        <EditText android:id="@+id/input_register_cep" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="CEP (8 dígitos)" android:inputType="number" android:maxLength="8" />
-        <Button android:id="@+id/btn_register_find_cep" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Buscar CEP" />
-        <EditText android:id="@+id/input_register_street" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Rua" android:inputType="textPostalAddress" android:maxLength="150" />
-        <EditText android:id="@+id/input_register_number" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Número" android:inputType="text" android:maxLength="10" />
-        <EditText android:id="@+id/input_register_complement" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Complemento (opcional)" android:inputType="text" android:maxLength="100" />
-        <EditText android:id="@+id/input_register_neighborhood" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Bairro" android:inputType="text" android:maxLength="100" />
-        <EditText android:id="@+id/input_register_city" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Cidade" android:inputType="text" android:maxLength="100" />
-        <EditText android:id="@+id/input_register_state" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="UF" android:inputType="textCapCharacters" android:maxLength="2" />
-        <CheckBox android:id="@+id/check_register_marketing" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Aceito receber novidades e ofertas" />
-        <TextView android:id="@+id/text_register_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:visibility="gone" />
-        <Button android:id="@+id/btn_register_submit" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Cadastrar" />
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>
