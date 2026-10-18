@@ -13,11 +13,13 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.mottainai.cliente.BuildConfig;
 import com.mottainai.cliente.models.PartnerStore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class PartnerMapView extends FrameLayout {
 
@@ -25,6 +27,7 @@ public class PartnerMapView extends FrameLayout {
     private final List<PartnerStore> stores = new ArrayList<>();
     private GoogleMap googleMap;
     private boolean created;
+    private Consumer<PartnerStore> onStoreSelected;
 
     public PartnerMapView(Context context) {
         this(context, null);
@@ -55,6 +58,11 @@ public class PartnerMapView extends FrameLayout {
         map.getMapAsync(ready -> {
             if (!created) return;
             googleMap = ready;
+            googleMap.setOnMarkerClickListener(marker -> {
+                if (onStoreSelected == null || !(marker.getTag() instanceof PartnerStore)) return false;
+                onStoreSelected.accept((PartnerStore) marker.getTag());
+                return true;
+            });
             renderStores();
         });
     }
@@ -65,6 +73,10 @@ public class PartnerMapView extends FrameLayout {
         renderStores();
     }
 
+    public void setOnStoreSelected(Consumer<PartnerStore> listener) {
+        onStoreSelected = listener;
+    }
+
     private void renderStores() {
         if (googleMap == null) return;
         googleMap.clear();
@@ -73,8 +85,9 @@ public class PartnerMapView extends FrameLayout {
         for (PartnerStore store : stores) {
             if (!store.hasValidLocation()) continue;
             LatLng position = new LatLng(store.getLatitude(), store.getLongitude());
-            googleMap.addMarker(new MarkerOptions().position(position).title(store.getName())
+            Marker marker = googleMap.addMarker(new MarkerOptions().position(position).title(store.getName())
                     .snippet(store.getAddressLabel()));
+            if (marker != null) marker.setTag(store);
             bounds.include(position);
             locations.add(position);
         }
@@ -86,7 +99,11 @@ public class PartnerMapView extends FrameLayout {
                     && visibleBounds.northeast.longitude - visibleBounds.southwest.longitude < 0.005) {
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locations.get(0), 14f));
             } else {
-                map.post(() -> googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(visibleBounds, 48)));
+                map.post(() -> {
+                    if (created && googleMap != null && map.getWidth() > 0 && map.getHeight() > 0) {
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(visibleBounds, 48));
+                    }
+                });
             }
         }
     }
@@ -96,6 +113,7 @@ public class PartnerMapView extends FrameLayout {
     public void pauseMap() { if (map != null && created) map.onPause(); }
     public void stopMap() { if (map != null && created) map.onStop(); }
     public void releaseMap() {
+        onStoreSelected = null;
         if (map != null && created) {
             map.onDestroy();
             created = false;

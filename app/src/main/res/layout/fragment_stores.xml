@@ -42,20 +42,10 @@
                 android:visibility="gone" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="14dp"
-                android:letterSpacing="0.05"
-                android:text="© OpenStreetMap contributors"
-                android:textColor="@color/primary_green_dark"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-            <TextView
                 android:id="@+id/tv_nearest_store"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|start"
+                android:layout_gravity="top|start"
                 android:layout_margin="14dp"
                 android:background="@drawable/bg_pill_rounded"
                 android:paddingHorizontal="10dp"
@@ -85,7 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Parceiros recomendados"
+            android:text="Lojas disponíveis"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />

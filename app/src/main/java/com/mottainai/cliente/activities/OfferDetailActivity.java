@@ -1,11 +1,8 @@
 package com.mottainai.cliente.activities;
 
 import android.content.res.ColorStateList;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,9 +11,11 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.mottainai.cliente.R;
 import com.mottainai.cliente.models.Offer;
+import com.mottainai.cliente.models.PartnerStore;
 import com.mottainai.cliente.network.dto.CatalogPromotion;
 import com.mottainai.cliente.repository.LoadState;
 import com.mottainai.cliente.viewmodel.CatalogViewModel;
+import com.mottainai.cliente.utils.MapNavigation;
 
 import java.util.Locale;
 
@@ -48,6 +47,7 @@ public class OfferDetailActivity extends AppCompatActivity {
         if (state == null) return;
         TextView status = findViewById(R.id.offer_detail_status);
         View retry = findViewById(R.id.offer_detail_retry);
+        findViewById(R.id.btn_redeem).setVisibility(View.GONE);
         if (state.status == LoadState.Status.LOADING) {
             status.setText("Carregando oferta...");
             retry.setVisibility(View.GONE);
@@ -62,19 +62,9 @@ public class OfferDetailActivity extends AppCompatActivity {
         retry.setVisibility(View.GONE);
         bind(new Offer(state.data));
         View route = findViewById(R.id.btn_redeem);
-        if (state.data.store != null && state.data.store.latitude != null
-                && state.data.store.longitude != null) {
+        if (state.data.store != null) {
             route.setVisibility(View.VISIBLE);
-            route.setOnClickListener(v -> {
-                String coordinates = state.data.store.latitude + "," + state.data.store.longitude;
-                Intent intent = new Intent(Intent.ACTION_VIEW,
-                        Uri.parse("geo:0,0?q=" + Uri.encode(coordinates)));
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(this, "Nenhum app de mapas disponível.", Toast.LENGTH_SHORT).show();
-                }
-            });
+            route.setOnClickListener(v -> MapNavigation.openRoute(this, new PartnerStore(state.data.store)));
         } else {
             route.setVisibility(View.GONE);
         }

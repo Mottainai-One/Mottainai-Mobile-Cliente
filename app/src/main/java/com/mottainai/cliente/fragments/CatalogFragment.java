@@ -39,8 +39,7 @@ public class CatalogFragment extends Fragment {
     private OfferAdapter offerAdapter;
     private TextView offerCountLabel;
     private String currentQuery = "";
-    private int page;
-    private boolean hasMore;
+    private String storeId;
     private Runnable pendingSearch;
 
     @Nullable
@@ -56,6 +55,10 @@ public class CatalogFragment extends Fragment {
 
         offerCountLabel = view.findViewById(R.id.tv_offer_count);
         viewModel = new ViewModelProvider(this).get(CatalogViewModel.class);
+        boolean firstLoad = viewModel.promotions().getValue() == null;
+        storeId = firstLoad && getArguments() != null
+                ? getArguments().getString("store_id") : viewModel.promotionStoreId();
+        currentQuery = viewModel.promotionQuery();
 
         RecyclerView recyclerView = view.findViewById(R.id.rv_offers);
         recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 2));
@@ -80,6 +83,7 @@ public class CatalogFragment extends Fragment {
         recyclerView.setAdapter(offerAdapter);
 
         EditText searchField = view.findViewById(R.id.et_search);
+        searchField.setText(currentQuery);
         searchField.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -89,6 +93,7 @@ public class CatalogFragment extends Fragment {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 currentQuery = s.toString();
                 if (pendingSearch != null) handler.removeCallbacks(pendingSearch);
+                if (currentQuery.trim().equals(viewModel.promotionQuery())) return;
                 pendingSearch = () -> reload();
                 handler.postDelayed(pendingSearch, 400);
             }
@@ -98,23 +103,25 @@ public class CatalogFragment extends Fragment {
             }
         });
 
-        view.findViewById(R.id.catalog_retry).setOnClickListener(v -> loadPage(page));
-        view.findViewById(R.id.catalog_load_more).setOnClickListener(v -> loadPage(page + 1));
+        View clearStore = view.findViewById(R.id.catalog_clear_store);
+        clearStore.setVisibility(storeId == null ? View.GONE : View.VISIBLE);
+        clearStore.setOnClickListener(v -> {
+            storeId = null;
+            clearStore.setVisibility(View.GONE);
+            reload();
+        });
+        view.findViewById(R.id.catalog_retry).setOnClickListener(v -> loadPage(viewModel.promotionPage()));
+        view.findViewById(R.id.catalog_load_more).setOnClickListener(v -> loadPage(viewModel.nextPromotionPage()));
         viewModel.promotions().observe(getViewLifecycleOwner(), state -> render(view, state));
-        reload();
+        if (firstLoad) reload();
     }
 
     private void reload() {
-        page = 0;
-        hasMore = false;
-        offers.clear();
-        if (offerAdapter != null) offerAdapter.setOffers(offers);
         loadPage(0);
     }
 
     private void loadPage(int requestedPage) {
-        page = requestedPage;
-        viewModel.loadPromotions(requestedPage, null, currentQuery);
+        viewModel.loadPromotions(requestedPage, storeId, currentQuery);
     }
 
     private void render(View view, LoadState<com.mottainai.cliente.network.dto.CatalogPage<CatalogPromotion>> state) {
@@ -124,6 +131,15 @@ public class CatalogFragment extends Fragment {
         View loading = view.findViewById(R.id.catalog_loading);
         View retry = view.findViewById(R.id.catalog_retry);
         View more = view.findViewById(R.id.catalog_load_more);
+        offers.clear();
+        if (state.data != null) {
+            for (CatalogPromotion promotion : state.data.items()) offers.add(new Offer(promotion));
+            offerCountLabel.setText(String.format(Locale.getDefault(),
+                    "%d ofertas para aproveitar", state.data.totalElements));
+        } else {
+            offerCountLabel.setText("");
+        }
+        offerAdapter.setOffers(offers);
         loading.setVisibility(state.status == LoadState.Status.LOADING ? View.VISIBLE : View.GONE);
         if (state.status == LoadState.Status.LOADING) {
             status.setVisibility(offers.isEmpty() ? View.VISIBLE : View.GONE);
@@ -139,17 +155,10 @@ public class CatalogFragment extends Fragment {
             more.setVisibility(View.GONE);
             return;
         }
-        for (CatalogPromotion promotion : state.data.items()) {
-            offers.add(new Offer(promotion));
-        }
-        offerAdapter.setOffers(offers);
-        hasMore = page + 1 < state.data.totalPages;
         status.setVisibility(offers.isEmpty() ? View.VISIBLE : View.GONE);
         message.setText("Nenhuma oferta disponível no momento.");
         retry.setVisibility(View.GONE);
-        more.setVisibility(hasMore ? View.VISIBLE : View.GONE);
-        offerCountLabel.setText(String.format(Locale.getDefault(),
-                "%d ofertas para aproveitar", state.data.totalElements));
+        more.setVisibility(state.data.number + 1 < state.data.totalPages ? View.VISIBLE : View.GONE);
     }
 
     @Override

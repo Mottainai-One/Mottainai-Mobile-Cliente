@@ -19,11 +19,19 @@ public class LoadState<T> {
         return new LoadState<>(Status.LOADING, null, null, 0);
     }
 
+    public static <T> LoadState<T> loading(T previousData) {
+        return new LoadState<>(Status.LOADING, previousData, null, 0);
+    }
+
     public static <T> LoadState<T> success(T data) {
         return new LoadState<>(Status.SUCCESS, data, null, 0);
     }
 
     public static <T> LoadState<T> error(String message, int httpStatus) {
         return new LoadState<>(Status.ERROR, null, message, httpStatus);
+    }
+
+    public static <T> LoadState<T> error(String message, int httpStatus, T previousData) {
+        return new LoadState<>(Status.ERROR, previousData, message, httpStatus);
     }
 }

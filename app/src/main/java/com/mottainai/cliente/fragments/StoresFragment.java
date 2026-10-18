@@ -4,13 +4,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,6 +21,8 @@ import com.mottainai.cliente.network.dto.CatalogStore;
 import com.mottainai.cliente.repository.LoadState;
 import com.mottainai.cliente.viewmodel.CatalogViewModel;
 import com.mottainai.cliente.widgets.PartnerMapView;
+import com.mottainai.cliente.utils.MapNavigation;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +33,6 @@ public class StoresFragment extends Fragment {
     private CatalogViewModel viewModel;
     private StoreAdapter storeAdapter;
     private PartnerMapView mapView;
-    private int page;
 
     @Nullable
     @Override
@@ -47,26 +48,33 @@ public class StoresFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(CatalogViewModel.class);
         mapView = view.findViewById(R.id.map_stores);
         mapView.createMap(savedInstanceState);
+        mapView.setOnStoreSelected(store -> showStore(view, store));
         RecyclerView recyclerView = view.findViewById(R.id.rv_stores);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        storeAdapter = new StoreAdapter(store ->
-                Toast.makeText(requireContext(), store.getAddressLabel(), Toast.LENGTH_LONG).show());
+        storeAdapter = new StoreAdapter(store -> showStore(view, store));
         recyclerView.setAdapter(storeAdapter);
-        view.findViewById(R.id.stores_retry).setOnClickListener(v -> loadPage(page));
-        view.findViewById(R.id.stores_load_more).setOnClickListener(v -> loadPage(page + 1));
+        view.findViewById(R.id.stores_retry).setOnClickListener(v -> loadPage(viewModel.storePage()));
+        view.findViewById(R.id.stores_load_more).setOnClickListener(v -> loadPage(viewModel.nextStorePage()));
         viewModel.stores().observe(getViewLifecycleOwner(), state -> render(view, state));
-        loadPage(0);
+        if (viewModel.stores().getValue() == null) loadPage(0);
     }
 
     private void loadPage(int requestedPage) {
-        if (requestedPage == 0) {
-            stores.clear();
-            storeAdapter.setStores(stores);
-            mapView.setStores(stores);
-            mapView.setVisibility(View.GONE);
-        }
-        page = requestedPage;
         viewModel.loadStores(requestedPage, null);
+    }
+
+    private void showStore(View view, PartnerStore store) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(store.getName())
+                .setMessage(store.getAddressLabel())
+                .setPositiveButton("Ver ofertas", (dialog, which) -> {
+                    Bundle args = new Bundle();
+                    args.putString("store_id", store.getId());
+                    Navigation.findNavController(view).navigate(R.id.catalogFragment, args);
+                })
+                .setNeutralButton("Como chegar", (dialog, which) -> MapNavigation.openRoute(requireContext(), store))
+                .setNegativeButton("Fechar", null)
+                .show();
     }
 
     private void render(View view,
@@ -76,6 +84,18 @@ public class StoresFragment extends Fragment {
         TextView mapLabel = view.findViewById(R.id.tv_nearest_store);
         View retry = view.findViewById(R.id.stores_retry);
         View more = view.findViewById(R.id.stores_load_more);
+        stores.clear();
+        if (state.data != null) {
+            for (CatalogStore store : state.data.items()) stores.add(new PartnerStore(store));
+        }
+        storeAdapter.setStores(stores);
+        mapView.setStores(stores);
+        long located = stores.stream().filter(PartnerStore::hasValidLocation).count();
+        boolean showMap = located > 0 && mapView.isConfigured();
+        mapView.setVisibility(showMap ? View.VISIBLE : View.GONE);
+        mapLabel.setText(located == 0 ? "Sem localização no mapa"
+                : !mapView.isConfigured() ? "Mapa indisponível no momento"
+                : located + " lojas com localização");
         if (state.status == LoadState.Status.LOADING) {
             status.setText("Carregando lojas...");
             retry.setVisibility(View.GONE);
@@ -89,19 +109,10 @@ public class StoresFragment extends Fragment {
             if (stores.isEmpty()) mapView.setVisibility(View.GONE);
             return;
         }
-        for (CatalogStore store : state.data.items()) stores.add(new PartnerStore(store));
-        storeAdapter.setStores(stores);
-        mapView.setStores(stores);
-        long located = stores.stream().filter(PartnerStore::hasValidLocation).count();
-        boolean showMap = located > 0 && mapView.isConfigured();
-        mapView.setVisibility(showMap ? View.VISIBLE : View.GONE);
-        mapLabel.setText(located == 0 ? "Sem localização no mapa"
-                : !mapView.isConfigured() ? "Mapa aguardando configuração da chave Google Maps"
-                : located + " lojas com localização");
         status.setText(stores.isEmpty() ? "Nenhuma loja disponível no momento."
                 : stores.size() + " lojas encontradas. Endereços sem coordenadas aparecem na lista.");
         retry.setVisibility(View.GONE);
-        more.setVisibility(page + 1 < state.data.totalPages ? View.VISIBLE : View.GONE);
+        more.setVisibility(state.data.number + 1 < state.data.totalPages ? View.VISIBLE : View.GONE);
     }
 
     @Override
