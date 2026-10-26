@@ -1,49 +1,51 @@
-# 🛍️ Mottainai — App Cliente
+# Mottainai Mobile Cliente
 
-O **Mottainai Cliente** é o aplicativo do ecossistema voltado ao consumidor final. O seu papel principal é tornar o consumo consciente simples e vantajoso, conectando ofertas de produtos próximos ao vencimento diretamente aos clientes interessados.
+Aplicativo Android em Java para explorar uma experiência de cliente com ofertas, lojas, pontos, impacto e atendimento conversacional. O estado atual é uma implementação demonstrativa: os dados vêm de repositórios mock locais, sem integração de backend ou persistência remota configurada.
 
-A plataforma une **economia, geolocalização e impacto ambiental**, ajudando a combater o desperdício de alimentos no varejo (ODS 12.3 da ONU).
+## Funcionalidades implementadas
 
----
+- Onboarding e navegação entre início, catálogo, lojas, pontos e perfil.
+- Lista de ofertas e tela de detalhes com dados de demonstração.
+- Visualização de lojas e mapa apresentado pela interface do aplicativo.
+- Histórico de pontos e painel de impacto com dados locais.
+- Tela de assistente com respostas produzidas pelo mecanismo local AssistantReplyEngine.
 
-## 🎯 Perfil do Usuário
+O repositório não implementa geofencing em segundo plano, notificações push, compras, sincronização com APIs nem acesso VIP. Não há permissões de localização ou integração Firebase declaradas no manifesto atual.
 
-O aplicativo foi desenhado para consumidores que:
-* Buscam economia real nas compras de supermercado;
-* Valorizam a praticidade e a localização de lojas próximas;
-* Aceitam comprar produtos próximos da validade, desde que seguros e com descontos atrativos;
-* Gostam de ser recompensados por meio de programas de fidelidade e gamificação.
+A documentação funcional do [Mottainai-Hub](https://github.com/Mottainai-One/Mottainai-Hub/blob/main/Docs/mobile/MOBILE-CLIENTE.md) registra uma branch local de integração e decisões do projeto; ela não é uma auditoria desta branch main. Confira o código da branch que será compilada antes de assumir que uma integração descrita no Hub está publicada aqui.
 
----
+## Tecnologias e requisitos
 
-## ✨ Funcionalidades Principais
+- Java e Android Views com layouts XML e View Binding.
+- Android Gradle Plugin 9.0.1, conforme gradle/libs.versions.toml.
+- Android SDK: compile/target 36 e minSdk 26, conforme app/build.gradle.kts.
+- Android Studio com JDK compatível com o Android Gradle Plugin do projeto.
 
-* 📍 **Mapa e Geofencing:** O aplicativo mapeia lojas parceiras próximas. Caso o cliente autorize a localização, o sistema monitora regiões em segundo plano e envia uma notificação *Push* assim que ele entra no raio de uma loja com "Queima de Estoque" ativa.
-* 🛒 **Catálogo de Promoções:** Vitrine em formato de grade exibindo os itens salvos. O cliente visualiza a foto, desconto, preço final, dias restantes de validade e a distância até o local.
-* ⭐ **Fidelidade e Gamificação (Acesso VIP):** A compra de itens "salvos do desperdício" gera Pontos Mottainai. Clientes com alta fidelidade sobem de nível e recebem **Acesso Antecipado VIP** a ofertas de lotes muito limitados, criando exclusividade e escassez.
-* 🌱 **Dashboard de Impacto Sustentável:** Tangibiliza a boa ação do usuário. Mostra a quantidade de produtos salvos, a estimativa de CO₂ evitado e o valor total economizado, permitindo o compartilhamento em redes sociais.
-* 🤖 **Agente Cliente (Chat IA):** Um assistente inteligente integrado para tirar dúvidas instantâneas sobre promoções, funcionamento dos níveis de fidelidade, lojas e o impacto sustentável do projeto.
+## Abrir e executar
 
----
+1. Abra este repositório no Android Studio.
+2. Aguarde a sincronização do Gradle.
+3. Selecione um emulador ou dispositivo com Android 8.0 (API 26) ou superior e execute a configuração app.
 
-## 📱 Interface e Navegação
+Também é possível compilar no Windows usando o wrapper incluído:
 
-A navegação base é amigável e direta:
-`Home` | `Catálogo` | `Lojas` | `Pontos` | `Perfil`
+    .\gradlew.bat assembleDebug
 
-### 🎨 Identidade Visual e UX
-O design do aplicativo transmite sustentabilidade e clareza:
-* **Cores:** Fundo claro e acolhedor. O **Verde** atua como cor principal. O vermelho é restrito a urgências (vencimento crítico), o âmbar para atenção e o *teal* para conquistas.
-* **Layout:** Cards com cantos arredondados, tipografia limpa e prioridade visual para os descontos.
-* **Resiliência de UX:** Todas as telas possuem tratamento obrigatório de estados (carregamento, sucesso, estado vazio, falha de conexão).
+O APK de depuração é gerado em app/build/outputs/apk/debug/. O projeto não declara configuração de URL de API ou arquivo Firebase necessário para essa execução demonstrativa.
 
----
+## Testes
 
-## 🔄 Como o Ecossistema se Conecta?
+    .\gradlew.bat testDebugUnitTest
 
-O **Mottainai Cliente** não atua sozinho. Ele é a ponta final de uma rede inteligente de prevenção de perdas:
+Os testes instrumentados podem ser executados com .\gradlew.bat connectedDebugAndroidTest quando houver um dispositivo ou emulador conectado.
 
-1. **A Detecção:** O Motor Preditivo (Inteligência Artificial) detecta que um produto vai vencer nas prateleiras do mercado.
-2. **A Ação:** O *Mottainai Operacional* alerta o Gerente da loja, que aprova uma promoção (ex: 50% de desconto).
-3. **A Conexão:** Essa decisão vira, instantaneamente, uma promoção no catálogo do **App Cliente**.
-4. **O Resultado:** O aplicativo notifica os clientes próximos via *Geofencing*, os clientes compram o produto, a loja evita o prejuízo, o consumidor ganha o desconto (e pontos) e o alimento é salvo do lixo.
+## Estrutura
+
+- app/src/main/java/com/mottainai/cliente/activities: onboarding, detalhes de ofertas e assistente.
+- app/src/main/java/com/mottainai/cliente/fragments: telas principais.
+- app/src/main/java/com/mottainai/cliente/repository: repositórios locais de demonstração.
+- app/src/main/res: layouts, navegação e recursos visuais.
+
+## Licença
+
+Não há arquivo de licença versionado na branch padrão consultada.
