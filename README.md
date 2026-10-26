@@ -1,49 +1,44 @@
-# 🛍️ Mottainai — App Cliente
+# Mottainai Customer App
 
-O **Mottainai Cliente** é o aplicativo do ecossistema voltado ao consumidor final. O seu papel principal é tornar o consumo consciente simples e vantajoso, conectando ofertas de produtos próximos ao vencimento diretamente aos clientes interessados.
+Native Android customer application for the Mottainai ecosystem. Layouts, text, forms, controls, icons and illustrations are implemented with Android views and drawable XML; the application ships no SVG files or SVG rendering dependency. Product copy remains in Brazilian Portuguese. Technical documentation and source identifiers are English.
 
-A plataforma une **economia, geolocalização e impacto ambiental**, ajudando a combater o desperdício de alimentos no varejo (ODS 12.3 da ONU).
+The [App Cliente / Ready for Dev](https://www.figma.com/design/DFHemxAp7isLLKf33YQve5/Mottainai---2%C2%B0-Ano?node-id=2005-3809) interface includes 115 screens and panels in both light and dark themes (230 XML variants) within one application.
 
----
+## Project structure
 
-## 🎯 Perfil do Usuário
+The application follows the package structure already present in the repository:
 
-O aplicativo foi desenhado para consumidores que:
-* Buscam economia real nas compras de supermercado;
-* Valorizam a praticidade e a localização de lojas próximas;
-* Aceitam comprar produtos próximos da validade, desde que seguros e com descontos atrativos;
-* Gostam de ser recompensados por meio de programas de fidelidade e gamificação.
+- `activities`: onboarding, assistant and offer detail entry points.
+- `fragments`: primary screen fragments and shared XML screen binding.
+- `adapters` and `models`: list/chat presentation and existing domain objects.
+- `repository`: bundled screen/prototype definitions and existing mock repositories.
+- `utils`: local session preferences, form controls, typography and empty-state binding.
+- `widgets`: reusable artwork containers, SVG images and maps.
+- `res/layout`, `res/layout-night`, `res/navigation`: native screens and the AndroidX Navigation graph.
+- `res/drawable`: native vector/shape XML for icons, branding and illustrations. `res/font` and `assets/licenses` contain DM Sans and its license.
 
----
+## Current behavior and integration limits
 
-## ✨ Funcionalidades Principais
+Onboarding, local forms/preferences, theme switching, photo selection/capture and interactive OpenStreetMap viewing are available. The app uses native Android permissions; locating the device requires authorization. Panels dim the actual underlying screen. Chat labels identify the customer as “Você” and the assistant as “Lô”.
 
-* 📍 **Mapa e Geofencing:** O aplicativo mapeia lojas parceiras próximas. Caso o cliente autorize a localização, o sistema monitora regiões em segundo plano e envia uma notificação *Push* assim que ele entra no raio de uma loja com "Queima de Estoque" ativa.
-* 🛒 **Catálogo de Promoções:** Vitrine em formato de grade exibindo os itens salvos. O cliente visualiza a foto, desconto, preço final, dias restantes de validade e a distância até o local.
-* ⭐ **Fidelidade e Gamificação (Acesso VIP):** A compra de itens "salvos do desperdício" gera Pontos Mottainai. Clientes com alta fidelidade sobem de nível e recebem **Acesso Antecipado VIP** a ofertas de lotes muito limitados, criando exclusividade e escassez.
-* 🌱 **Dashboard de Impacto Sustentável:** Tangibiliza a boa ação do usuário. Mostra a quantidade de produtos salvos, a estimativa de CO₂ evitado e o valor total economizado, permitindo o compartilhamento em redes sociais.
-* 🤖 **Agente Cliente (Chat IA):** Um assistente inteligente integrado para tirar dúvidas instantâneas sobre promoções, funcionamento dos níveis de fidelidade, lojas e o impacto sustentável do projeto.
+The customer API is not ready. Authentication remains a local session; offers, partner stores, balances, savings and history show empty/unavailable states. Google OAuth, email delivery, remote account synchronization, AI replies, offer notifications and geofencing require future services. Granting notification permission does not implement delivery. The assistant clearly states that it is not connected.
 
----
+Figma fixture data is available only in explicit debug visual previews. Release builds ignore `design_preview`. Prototype success states are not evidence of server operations.
 
-## 📱 Interface e Navegação
+## Build and checks
 
-A navegação base é amigável e direta:
-`Home` | `Catálogo` | `Lojas` | `Pontos` | `Perfil`
+Use the Android SDK and a JDK compatible with the existing Gradle/Android plugin versions:
 
-### 🎨 Identidade Visual e UX
-O design do aplicativo transmite sustentabilidade e clareza:
-* **Cores:** Fundo claro e acolhedor. O **Verde** atua como cor principal. O vermelho é restrito a urgências (vencimento crítico), o âmbar para atenção e o *teal* para conquistas.
-* **Layout:** Cards com cantos arredondados, tipografia limpa e prioridade visual para os descontos.
-* **Resiliência de UX:** Todas as telas possuem tratamento obrigatório de estados (carregamento, sucesso, estado vazio, falha de conexão).
+```powershell
+.\gradlew.bat --no-daemon testDebugUnitTest lintDebug assembleDebug
+```
 
----
+There are currently no JVM unit test sources; the unit-test task reports `NO-SOURCE`. Instrumented tests require an emulator or dedicated test device. Set `ANDROID_SERIAL` to the emulator before running:
 
-## 🔄 Como o Ecossistema se Conecta?
+```powershell
+.\gradlew.bat --no-daemon connectedDebugAndroidTest
+```
 
-O **Mottainai Cliente** não atua sozinho. Ele é a ponta final de uma rede inteligente de prevenção de perdas:
+Instrumented tests may reset application data. Never target a user's personal device unintentionally.
 
-1. **A Detecção:** O Motor Preditivo (Inteligência Artificial) detecta que um produto vai vencer nas prateleiras do mercado.
-2. **A Ação:** O *Mottainai Operacional* alerta o Gerente da loja, que aprova uma promoção (ex: 50% de desconto).
-3. **A Conexão:** Essa decisão vira, instantaneamente, uma promoção no catálogo do **App Cliente**.
-4. **O Resultado:** O aplicativo notifica os clientes próximos via *Geofencing*, os clientes compram o produto, a loja evita o prejuízo, o consumidor ganha o desconto (e pontos) e o alimento é salvo do lixo.
+See [implementation details](docs/figma-implementation.md), [phone corrections](docs/phone-corrections.md), [visual review](docs/visual-review.md), and the [refactor plan and evidence](docs/refactor-plan.md).
