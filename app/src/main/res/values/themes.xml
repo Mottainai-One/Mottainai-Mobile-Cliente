@@ -1,10 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.MottainaiCliente" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/primary_green</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="android:statusBarColor">@color/primary_green</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="colorPrimary">@color/design_primary</item>
+        <item name="colorOnPrimary">@color/design_on_primary</item>
+        <item name="android:colorBackground">@color/design_canvas</item>
+        <item name="colorSurface">@color/design_canvas</item>
+        <item name="android:textColor">@color/design_text</item>
+        <item name="android:fontFamily">@font/dm_sans</item>
     </style>
 
     <style name="Theme.MottainaiCliente" parent="Base.Theme.MottainaiCliente" />

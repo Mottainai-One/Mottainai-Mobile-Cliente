@@ -61,7 +61,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             case TYPE_USER:
                 return new TextViewHolder(inflater.inflate(R.layout.item_chat_user, parent, false));
             case TYPE_OFFER_CARD:
-                return new OfferCardViewHolder(inflater.inflate(R.layout.item_chat_offer_card, parent, false));
+                return new OfferCardViewHolder(
+                        inflater.inflate(R.layout.item_chat_offer_card, parent, false));
             default:
                 return new TextViewHolder(inflater.inflate(R.layout.item_chat_bot, parent, false));
         }
@@ -73,21 +74,50 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (holder instanceof OfferCardViewHolder) {
             bindOfferCard((OfferCardViewHolder) holder, message.getAttachedOffer());
         } else if (holder instanceof TextViewHolder) {
-            ((TextViewHolder) holder).text.setText(message.getText());
+            bindTextMessage(holder.itemView, message);
         }
+    }
+
+    /** Shared rendering for RecyclerView rows and the screen's scrolling transcript. */
+    public static View createMessageView(ViewGroup parent, ChatMessage message) {
+        int layout =
+                message.getSender() == ChatMessage.Sender.USER
+                        ? R.layout.item_chat_user
+                        : R.layout.item_chat_bot;
+        View row = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);
+        bindTextMessage(row, message);
+        return row;
+    }
+
+    private static void bindTextMessage(View row, ChatMessage message) {
+        boolean user = message.getSender() == ChatMessage.Sender.USER;
+        TextView text = row.findViewById(user ? R.id.design_chat_user : R.id.design_chat_reply);
+        text.setText(message.getText());
+        text.setMaxWidth(Math.round(row.getResources().getDisplayMetrics().widthPixels * 0.76f));
+        text.setFontVariationSettings("'wght' 400, 'opsz' 14");
+        TextView author = row.findViewById(R.id.tv_message_author);
+        author.setFontVariationSettings("'wght' 500, 'opsz' 14");
     }
 
     private void bindOfferCard(OfferCardViewHolder holder, Offer offer) {
         holder.title.setText(offer.getTitle());
-        holder.meta.setText(String.format(Locale.getDefault(), "%s · %.1f km", offer.getStoreName(), offer.getDistanceKm()));
-        holder.discount.setText(String.format(Locale.getDefault(), "-%d%%", offer.getDiscountPercent()));
-        int thumbColor = ContextCompat.getColor(holder.itemView.getContext(), offer.getThumbnailColorRes());
+        holder.meta.setText(
+                String.format(
+                        Locale.getDefault(),
+                        "%s · %.1f km",
+                        offer.getStoreName(),
+                        offer.getDistanceKm()));
+        holder.discount.setText(
+                String.format(Locale.getDefault(), "-%d%%", offer.getDiscountPercent()));
+        int thumbColor =
+                ContextCompat.getColor(holder.itemView.getContext(), offer.getThumbnailColorRes());
         holder.thumb.setBackgroundTintList(ColorStateList.valueOf(thumbColor));
-        holder.viewOfferButton.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onOfferCardClick(offer);
-            }
-        });
+        holder.viewOfferButton.setOnClickListener(
+                v -> {
+                    if (listener != null) {
+                        listener.onOfferCardClick(offer);
+                    }
+                });
     }
 
     @Override
@@ -96,11 +126,9 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static class TextViewHolder extends RecyclerView.ViewHolder {
-        final TextView text;
 
         TextViewHolder(@NonNull View itemView) {
             super(itemView);
-            text = itemView.findViewById(R.id.tv_message_text);
         }
     }
 

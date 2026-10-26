@@ -1,30 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    android:gravity="top"
-    android:orientation="horizontal">
-
-    <ImageView
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:background="@drawable/bg_circle_light_green"
-        android:contentDescription="@null"
-        android:padding="6dp"
-        android:src="@drawable/ic_leaf"
-        app:tint="@color/primary_green" />
-
-    <TextView
-        android:id="@+id/tv_message_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_weight="1"
-        android:background="@drawable/bg_chat_bubble_bot"
-        android:padding="12dp"
-        android:text="Mensagem"
-        android:textColor="@color/text_primary"
-        android:textSize="14sp" />
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="12dp" android:orientation="vertical" android:gravity="start">
+    <TextView android:id="@+id/tv_message_author"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp" android:text="@string/design_chat_assistant"
+        android:fontFamily="@font/dm_sans" android:includeFontPadding="false"
+        android:textSize="12sp" android:textColor="@color/chat_author" />
+    <TextView android:id="@+id/design_chat_reply"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="start" android:background="@drawable/bg_chat_bubble_bot"
+        android:paddingHorizontal="16dp" android:paddingVertical="12dp"
+        android:fontFamily="@font/dm_sans" android:includeFontPadding="false"
+        android:textSize="16sp" android:textColor="@color/chat_bot_text" />
 </LinearLayout>
