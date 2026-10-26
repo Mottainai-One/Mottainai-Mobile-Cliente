@@ -54,7 +54,7 @@ User clarification: exported SVG files must not serve as the implementation. The
 
 ## Final commit structure
 
-The replacement branch starts at the unchanged `origin/main` history. Its four commits change 288, 298, 7 and 5 files respectively, below the 1,500-file limit per commit:
+The replacement branch starts at the unchanged `origin/main` history. Its initial four commits change 288, 298, 7 and 5 files respectively, below the 1,500-file limit per commit:
 
 1. Native XML artwork, typography/form helpers and reusable drawing containers.
 2. Client screens, existing Navigation/session/chat integration, and removal of unreachable legacy implementation.
@@ -64,3 +64,14 @@ The replacement branch starts at the unchanged `origin/main` history. Its four c
 Final `testDebugUnitTest lintDebug assembleDebug` completed successfully after the final cleanup: zero lint errors, 523 other lint warnings and zero unused-resource warnings. The warnings are not claimed to be resolved. No new workflow or runtime dependency was added.
 
 The first resource commit (2b94195) was exported into a clean snapshot and independently passed assembleDebug. Legacy screens still compile before the integration commit.
+
+## Follow-up: consolidate theme structure
+
+The initial replacement PR still duplicated most light/dark view trees. A subsequent audit found 111 structurally matching pairs. Of these, 103 differed only in visual resources and interaction metadata and now share the default XML layout. Android values/values-night resources preserve the exact original colors, drawable references and tag metadata. Twelve dark overrides remain because they also differ in structure, content, dimensions or interactive attributes.
+
+This removes 103 duplicate layout files while adding two shared theme resource files: the PR changes 497 files instead of 598. The total includes 38 deletions of pre-existing legacy files. No screen definition, theme, native vector artwork or API boundary is removed to lower the count.
+Theme consolidation evidence: all 230 themed renders and 460 width/theme combinations completed in the full instrumented round. That round passed 25/28 tests; three system-window capture guards rejected captures while unrelated Messages/System UI ANR dialogs covered the emulator. Their focused retry passed 3/3 after closing those dialogs; lintDebug and assembleDebug also completed successfully. All 28 test cases therefore passed across the full round and focused retry. Capture guards were not disabled.
+
+Comparing 268 captures before/after layout sharing found 267 byte-identical PNGs (SHA-256). The remaining, unchanged sign-in layout had a mean absolute RGBA difference of 0.000064/255 and no pixel over the 16-channel-level threshold. All image dimensions match. Final lint reports zero errors, zero unused-resource warnings and 333 other warnings, reduced from 523.
+
+The fifth commit changes 211 files to share theme layouts and update the implementation evidence. The current 497-file PR comprises 425 additions, 34 modifications and 38 deletions; this count includes the requested native artwork and screen definitions.

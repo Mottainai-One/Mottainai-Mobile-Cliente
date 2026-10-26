@@ -2,13 +2,15 @@
 
 ## Scope
 
-The reference is [App Cliente / Ready for Dev](https://www.figma.com/design/DFHemxAp7isLLKf33YQve5/Mottainai---2%C2%B0-Ano?node-id=2005-3809). There are 115 screen/panel definitions with their own original light and dark contexts, represented by 230 XML layouts. Phone feedback takes precedence over simulated prototype behavior.
+The reference is [App Cliente / Ready for Dev](https://www.figma.com/design/DFHemxAp7isLLKf33YQve5/Mottainai---2%C2%B0-Ano?node-id=2005-3809). There are 115 screen/panel definitions with their own original light and dark contexts, implemented with 115 base layouts and 12 dark-theme overrides. Phone feedback takes precedence over simulated prototype behavior.
 
 The Java/XML application keeps the repository's layer packages, existing Activity entry points, primary Fragment classes, adapters/models, and AndroidX Navigation graph. `MainActivity` hosts `NavHostFragment`; full-screen transitions use `NavController`, while panels use a separate overlay container to retain the visible underlying destination. `ScreenFragment` shares form and prototype-action binding across XML variants. `ScreenRepository` loads offline screen definitions and prototype links. Source Figma node IDs and Portuguese labels remain metadata/localization, not Java identifiers.
 
 Reusable drawing containers live in `widgets`; form, typography and empty-state helpers live in `utils`. `SessionManager` owns local session/theme preferences and preserves previous preference keys, including migration of the original onboarding flag. `ChatAdapter` and `ChatMessage` render both RecyclerView messages and the scrolling assistant transcript.
 
 ## Resources and responsive behavior
+
+103 structurally identical light/dark pairs share one layout. Android values/values-night resources select the original colors, artwork and interaction metadata without duplicating the view tree. The remaining 12 dark layouts preserve actual structural, content or interaction differences. No runtime parser or code generator is introduced for theme selection.
 
 Layouts use native flow, scrolling, weighted columns, bounded width and system/keyboard insets. Proportional coordinates are limited to artwork composition. Font axes are applied through the TextView API supported by the minimum Android version. Layout filenames use English lower_snake_case names, with existing primary names such as `fragment_home` retained.
 

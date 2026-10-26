@@ -2,7 +2,7 @@
 
 Native Android customer application for the Mottainai ecosystem. Layouts, text, forms, controls, icons and illustrations are implemented with Android views and drawable XML; the application ships no SVG files or SVG rendering dependency. Product copy remains in Brazilian Portuguese. Technical documentation and source identifiers are English.
 
-The [App Cliente / Ready for Dev](https://www.figma.com/design/DFHemxAp7isLLKf33YQve5/Mottainai---2%C2%B0-Ano?node-id=2005-3809) interface includes 115 screens and panels in both light and dark themes (230 XML variants) within one application.
+The [App Cliente / Ready for Dev](https://www.figma.com/design/DFHemxAp7isLLKf33YQve5/Mottainai---2%C2%B0-Ano?node-id=2005-3809) interface includes 115 screens and panels in both light and dark themes (115 base layouts and 12 necessary dark-theme overrides) within one application.
 
 ## Project structure
 
