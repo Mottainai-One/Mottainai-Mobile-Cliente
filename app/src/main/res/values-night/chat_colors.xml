@@ -1,0 +1,7 @@
+<resources>
+    <color name="chat_author">#AFC0D6</color>
+    <color name="chat_user_text">#09142A</color>
+    <color name="chat_user_surface">#FF984F</color>
+    <color name="chat_bot_text">#F9F1E7</color>
+    <color name="chat_bot_surface">#132440</color>
+</resources>
