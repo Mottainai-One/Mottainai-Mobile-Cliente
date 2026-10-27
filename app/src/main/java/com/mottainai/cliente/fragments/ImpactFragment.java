@@ -1,58 +1,77 @@
 package com.mottainai.cliente.fragments;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.mottainai.cliente.R;
-import com.mottainai.cliente.models.UserProfile;
-import com.mottainai.cliente.repository.MockUserRepository;
-
-import java.util.Locale;
+import com.mottainai.cliente.network.dto.LoyaltyAccount;
+import com.mottainai.cliente.repository.LoadState;
+import com.mottainai.cliente.utils.LoyaltyPresentation;
+import com.mottainai.cliente.utils.SessionManager;
+import com.mottainai.cliente.viewmodel.LoyaltyViewModel;
 
 public class ImpactFragment extends Fragment {
+    private LoyaltyViewModel viewModel;
 
-    private final MockUserRepository userRepository = new MockUserRepository();
-
-    @Nullable
-    @Override
+    @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                              @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_impact, container, false);
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    @Override public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        UserProfile user = userRepository.getCurrentUser();
-
-        TextView kgAvoided = view.findViewById(R.id.tv_kg_avoided);
-        kgAvoided.setText(String.format(Locale.getDefault(), "%.1f kg", user.getKgAvoided()).replace('.', ','));
-
-        TextView itemsSaved = view.findViewById(R.id.tv_items_saved);
-        itemsSaved.setText(String.valueOf(user.getItemsSavedCount()));
-
-        TextView moneySaved = view.findViewById(R.id.tv_money_saved);
-        moneySaved.setText(String.format(Locale.getDefault(), "R$ %.0f", user.getMoneySavedBrl()));
-
+        viewModel = new ViewModelProvider(requireActivity()).get(LoyaltyViewModel.class);
         view.findViewById(R.id.btn_back).setOnClickListener(v ->
                 Navigation.findNavController(view).popBackStack());
+        view.findViewById(R.id.impact_retry).setOnClickListener(v -> viewModel.loadAccount());
+        viewModel.account().observe(getViewLifecycleOwner(), state -> render(view, state));
+        if (viewModel.account().getValue() == null) viewModel.loadAccount();
+    }
 
-        view.findViewById(R.id.btn_share_impact).setOnClickListener(v -> {
-            String shareText = "Já evitei " + kgAvoided.getText() + " de desperdício com o Mottainai!";
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
-            startActivity(Intent.createChooser(shareIntent, "Compartilhar meu impacto"));
+    private void render(View view, LoadState<LoyaltyAccount> state) {
+        if (state == null) return;
+        LoyaltyAccount account = state.data;
+        boolean demo = new SessionManager(requireContext()).isDemoMode();
+        ((TextView) view.findViewById(R.id.impact_points)).setText(
+                LoyaltyPresentation.points(account == null ? null : account.pointsBalance));
+        ((TextView) view.findViewById(R.id.impact_level)).setText(LoyaltyPresentation.status(account));
+        ((TextView) view.findViewById(R.id.impact_next_level)).setText(LoyaltyPresentation.nextStatus(account));
+        String status = state.status == LoadState.Status.LOADING ? "Carregando sua jornada…"
+                : state.status == LoadState.Status.ERROR ? state.message
+                : account == null || account.pointsBalance == null ? "Saldo não informado pela API."
+                : "Pontuação recebida do sistema; o aplicativo não concede pontos nem calcula níveis.";
+        ((TextView) view.findViewById(R.id.impact_availability)).setText(
+                (demo ? "Demonstração · dados fictícios. " : "") + status);
+        view.findViewById(R.id.impact_retry).setEnabled(state.status != LoadState.Status.LOADING);
+        View share = view.findViewById(R.id.btn_share_impact);
+        boolean confirmed = state.status == LoadState.Status.SUCCESS && account != null
+                && account.pointsBalance != null;
+        share.setEnabled(confirmed);
+        share.setOnClickListener(v -> {
+            if (!confirmed) return;
+            String text = (demo ? "Demonstração Mottainai — dados fictícios: " : "Minha jornada Mottainai: ")
+                    + LoyaltyPresentation.points(account.pointsBalance)
+                    + " de fidelidade em compras confirmadas. Um incentivo ao consumo consciente, não uma medição ambiental.";
+            Intent intent = new Intent(Intent.ACTION_SEND).setType("text/plain")
+                    .putExtra(Intent.EXTRA_TEXT, text);
+            try {
+                startActivity(Intent.createChooser(intent, "Compartilhar minha jornada"));
+            } catch (ActivityNotFoundException unavailable) {
+                Toast.makeText(requireContext(), "Nenhum aplicativo disponível para compartilhar.", Toast.LENGTH_LONG).show();
+            }
         });
     }
 }

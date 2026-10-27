@@ -2,8 +2,8 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, master]
-    types: [opened, synchronize, reopened]
+    branches: [main, master, 'feat/**', 'fix/**']
+    types: [opened, synchronize, reopened, edited]
   push:
     branches: [main, master]
 
@@ -99,7 +99,7 @@ jobs:
           echo "Verificando convenção de commits..."
 
           # Padrão de commits aceitos
-          PATTERN="^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert):"
+          PATTERN="^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert)(\([A-Za-z0-9][A-Za-z0-9._/-]*\))?: .+"
 
           # Obter commits do PR
           if [ "${{ github.event_name }}" = "pull_request" ]; then

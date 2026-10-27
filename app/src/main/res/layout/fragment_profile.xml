@@ -1,70 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_beige"
     android:fillViewport="true">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="@dimen/screen_padding">
-
+        <include
+            layout="@layout/include_brand_header" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Meu perfil"
             android:textColor="@color/text_primary"
-            android:textSize="22sp"
+            android:textSize="26sp"
             android:textStyle="bold" />
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-
             <TextView
                 android:id="@+id/tv_avatar_initials"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_circle_light_green"
                 android:gravity="center"
-                android:text="MA"
+                android:text="C"
                 android:textColor="@color/primary_green"
                 android:textSize="18sp"
                 android:textStyle="bold" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="14dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
-
                 <TextView
                     android:id="@+id/tv_profile_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Maria Almeida"
+                    android:text="Carregando…"
                     android:textColor="@color/text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold" />
-
                 <TextView
                     android:id="@+id/tv_profile_level"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Nível Semente · 1.280 pontos"
+                    android:text=""
                     android:textColor="@color/text_grey"
                     android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
-
+        <TextView
+            android:id="@+id/tv_profile_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Carregando perfil…"
+            android:textColor="@color/text_grey" />
+        <TextView
+            android:id="@+id/btn_profile_retry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Tentar novamente"
+            android:textColor="@color/primary_green"
+            android:visibility="gone"
+            android:minHeight="48dp"
+            android:focusable="true" />
         <LinearLayout
             android:id="@+id/row_your_data"
             android:layout_width="match_parent"
@@ -73,29 +85,27 @@
             android:background="@drawable/bg_card_rounded"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="16dp">
-
+            android:padding="16dp"
+            android:minHeight="48dp"
+            android:focusable="true">
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Seus dados"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold" />
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nome, e-mail e localização"
+                    android:text="Nome, telefone e consentimento"
                     android:textColor="@color/text_grey"
                     android:textSize="12sp" />
             </LinearLayout>
-
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
@@ -103,7 +113,6 @@
                 android:src="@drawable/ic_chevron_right"
                 app:tint="@color/text_grey_light" />
         </LinearLayout>
-
         <LinearLayout
             android:id="@+id/row_preferences"
             android:layout_width="match_parent"
@@ -112,29 +121,27 @@
             android:background="@drawable/bg_card_rounded"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="16dp">
-
+            android:padding="16dp"
+            android:minHeight="48dp"
+            android:focusable="true">
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Preferências"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold" />
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Notificações e privacidade"
+                    android:text="Raio de lojas nesta sessão"
                     android:textColor="@color/text_grey"
                     android:textSize="12sp" />
             </LinearLayout>
-
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
@@ -142,7 +149,6 @@
                 android:src="@drawable/ic_chevron_right"
                 app:tint="@color/text_grey_light" />
         </LinearLayout>
-
         <LinearLayout
             android:id="@+id/row_help"
             android:layout_width="match_parent"
@@ -151,29 +157,27 @@
             android:background="@drawable/bg_card_rounded"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="16dp">
-
+            android:padding="16dp"
+            android:minHeight="48dp"
+            android:focusable="true">
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Ajuda"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold" />
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Perguntas frequentes e suporte"
+                    android:text="Como usar o Mottainai"
                     android:textColor="@color/text_grey"
                     android:textSize="12sp" />
             </LinearLayout>
-
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
@@ -181,7 +185,6 @@
                 android:src="@drawable/ic_chevron_right"
                 app:tint="@color/text_grey_light" />
         </LinearLayout>
-
         <TextView
             android:id="@+id/btn_logout"
             android:layout_width="match_parent"
@@ -194,6 +197,5 @@
             android:text="Sair da conta"
             android:textColor="@color/accent_red"
             android:textStyle="bold" />
-
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

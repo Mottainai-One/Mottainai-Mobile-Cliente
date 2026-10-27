@@ -1,26 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_beige"
     android:fillViewport="true">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="@dimen/screen_padding">
-
+        <include
+            layout="@layout/include_brand_header" />
         <TextView
             android:id="@+id/tv_greeting"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Bom dia, Maria"
+            android:text="Olá!"
             android:textColor="@color/text_primary"
-            android:textSize="22sp"
+            android:textSize="26sp"
             android:textStyle="bold" />
-
+        <TextView
+            android:id="@+id/home_profile_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_grey" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_profile_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Atualizar perfil"
+            android:visibility="gone" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -28,101 +39,160 @@
             android:text="Vamos salvar algo gostoso hoje?"
             android:textColor="@color/text_grey"
             android:textSize="14sp" />
-
         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card_rounded"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Seus pontos"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/home_points_balance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="— pts"
+                android:textColor="@color/primary_green"
+                android:textSize="24sp" />
+            <TextView
+                android:id="@+id/home_points_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_grey" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/home_points_retry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Atualizar saldo"
+                android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/home_open_points"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ver saldo e histórico"
+                style="@style/Widget.Client.Button.Secondary" />
+        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Atualizar início"
+            style="@style/Widget.Client.Button.Secondary" />
+        <LinearLayout
+            android:id="@+id/home_impact_banner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:background="@drawable/bg_banner_dark_green"
             android:orientation="vertical"
-            android:padding="18dp">
-
+            android:padding="18dp"
+            android:visibility="gone">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:letterSpacing="0.06"
-                android:text="SEU IMPACTO ESTÁ CRESCENDO"
+                android:text="IMPACTO SUSTENTÁVEL"
                 android:textColor="@color/thumb_peach"
                 android:textSize="10sp"
                 android:textStyle="bold" />
-
             <TextView
                 android:id="@+id/tv_impact_kg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="1,2 kg"
+                android:text="—"
                 android:textColor="@color/white"
                 android:textSize="26sp"
                 android:textStyle="bold" />
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="de CO2 evitado este mês"
+                android:text="Métricas indisponíveis no momento"
                 android:textColor="@color/card_light_green"
                 android:textSize="12sp" />
         </LinearLayout>
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Oportunidades perto de você"
+            android:text="Oportunidades disponíveis"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
-
-        <LinearLayout
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/layout_featured_offers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:orientation="horizontal" />
-
+            android:nestedScrollingEnabled="false" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_open_catalog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/client_all_offers"
+            style="@style/Widget.Client.Button.Secondary" />
+        <TextView
+            android:id="@+id/home_offers_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Carregando ofertas..."
+            android:textColor="@color/text_grey" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_offers_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Lojas parceiras próximas"
+            android:text="Lojas parceiras"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
-
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp">
-
+            android:layout_marginTop="12dp"
+            android:minHeight="150dp"
+            android:background="@drawable/bg_map_placeholder">
             <com.mottainai.cliente.widgets.PartnerMapView
                 android:id="@+id/map_preview"
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
-                android:background="@drawable/bg_map_placeholder" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="12dp"
-                android:text="3 lugares para fazer a diferença"
-                android:textColor="@color/primary_green_dark"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
+                android:visibility="gone" />
             <TextView
                 android:id="@+id/tv_nearest_store"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|start"
+                android:layout_gravity="top|start"
                 android:layout_margin="12dp"
                 android:background="@drawable/bg_pill_rounded"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="6dp"
-                android:text="Mercado Verde · 0.4 km"
+                android:text="Carregando lojas..."
                 android:textColor="@color/text_primary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </FrameLayout>
-
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_stores_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_open_stores"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ver lojas"
+            style="@style/Widget.Client.Button.Secondary" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

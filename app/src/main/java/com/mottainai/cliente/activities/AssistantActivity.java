@@ -2,90 +2,116 @@ package com.mottainai.cliente.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.text.TextUtils;
 import android.widget.EditText;
-
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.mottainai.cliente.R;
 import com.mottainai.cliente.adapters.ChatAdapter;
-import com.mottainai.cliente.models.ChatMessage;
-import com.mottainai.cliente.repository.AssistantReplyEngine;
-import com.mottainai.cliente.repository.MockOfferRepository;
-import com.mottainai.cliente.repository.MockUserRepository;
+import com.mottainai.cliente.repository.LoadState;
+import com.mottainai.cliente.utils.ClientAccessGuard;
+import com.mottainai.cliente.viewmodel.AssistantViewModel;
 
-/** The "Lô" assistant chat. Replies are generated locally by {@link AssistantReplyEngine}. */
 public class AssistantActivity extends AppCompatActivity {
+    private AssistantViewModel viewModel;
+    private ChatAdapter adapter;
+    private RecyclerView recycler;
+    private EditText input;
 
-    private static final long BOT_REPLY_DELAY_MS = 600;
-
-    private final AssistantReplyEngine replyEngine = new AssistantReplyEngine(
-            new MockOfferRepository(), new MockUserRepository());
-    private final Handler handler = new Handler(Looper.getMainLooper());
-
-    private RecyclerView recyclerView;
-    private ChatAdapter chatAdapter;
-    private EditText messageField;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (ClientAccessGuard.redirectIfRequired(this)) return;
         setContentView(R.layout.activity_assistant);
-
-        messageField = findViewById(R.id.et_message);
-        recyclerView = findViewById(R.id.rv_messages);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        chatAdapter = new ChatAdapter(offer -> {
+        viewModel = new ViewModelProvider(this).get(AssistantViewModel.class);
+        input = findViewById(R.id.et_message);
+        recycler = findViewById(R.id.rv_messages);
+        recycler.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new ChatAdapter(offer -> {
             Intent intent = new Intent(this, OfferDetailActivity.class);
             intent.putExtra("offer_id", offer.getId());
             startActivity(intent);
         });
-        recyclerView.setAdapter(chatAdapter);
-
-        chatAdapter.addMessage(new ChatMessage(ChatMessage.Sender.BOT,
-                "Oi, Maria! Como posso ajudar? Posso buscar ofertas, consultar seus pontos ou explicar seu impacto."));
-
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-        findViewById(R.id.btn_send).setOnClickListener(v -> sendTypedMessage());
-
-        findViewById(R.id.chip_offers).setOnClickListener(v ->
-                sendUserMessage("Quero uma oferta de café perto de mim"));
-        findViewById(R.id.chip_points).setOnClickListener(v ->
-                sendUserMessage("Quantos pontos eu tenho?"));
-        findViewById(R.id.chip_impact).setOnClickListener(v ->
-                sendUserMessage("Qual é o meu impacto até agora?"));
+        recycler.setAdapter(adapter);
+        findViewById(R.id.btn_back).setOnClickListener(view -> finish());
+        findViewById(R.id.btn_send).setOnClickListener(view -> {
+            if (viewModel.send(input.getText().toString())) input.setText("");
+        });
+        input.setOnEditorActionListener((view, actionId, event) -> {
+            if (actionId != android.view.inputmethod.EditorInfo.IME_ACTION_SEND) return false;
+            if (viewModel.send(input.getText().toString())) input.setText("");
+            return true;
+        });
+        findViewById(R.id.chip_offers).setOnClickListener(view ->
+                viewModel.send("Quais ofertas posso consultar?"));
+        findViewById(R.id.chip_points).setOnClickListener(view ->
+                viewModel.send("Como funcionam os pontos de fidelidade?"));
+        findViewById(R.id.chip_impact).setOnClickListener(view ->
+                viewModel.send("O que representa minha jornada no Mottainai?"));
+        findViewById(R.id.btn_more).setContentDescription("Conversas e histórico");
+        findViewById(R.id.btn_more).setOnClickListener(view -> showActions());
+        viewModel.state().observe(this, state -> {
+            if (state == null) return;
+            adapter.setMessages(state.data);
+            boolean available = viewModel.isAvailable() && !viewModel.isBusy();
+            boolean canSend = available && !viewModel.isClosed();
+            input.setEnabled(canSend);
+            for (int id : new int[]{R.id.btn_send, R.id.chip_offers, R.id.chip_points, R.id.chip_impact}) {
+                findViewById(id).setEnabled(canSend);
+            }
+            findViewById(R.id.btn_more).setEnabled(available);
+            String prefix = viewModel.isDemo() ? "Demonstração · respostas locais. " : "";
+            ((TextView) findViewById(R.id.assistant_availability)).setText(prefix
+                    + (state.status == LoadState.Status.LOADING ? "Consultando o assistente…"
+                    : state.status == LoadState.Status.ERROR ? state.message
+                    : viewModel.isClosed() ? "Conversa encerrada · histórico somente leitura"
+                    : "Escreva para conversar"));
+            if (adapter.getMessageCount() > 0) {
+                recycler.post(() -> recycler.smoothScrollToPosition(adapter.getMessageCount() - 1));
+            }
+        });
+        viewModel.sessions().observe(this, sessions -> {
+            if (sessions == null) return;
+            viewModel.consumeSessionChoices();
+            if (isFinishing()) return;
+            if (sessions.isEmpty()) {
+                new MaterialAlertDialogBuilder(this).setMessage("Nenhuma conversa anterior encontrada.")
+                        .setPositiveButton("OK", null).show();
+                return;
+            }
+            String[] labels = new String[sessions.size()];
+            for (int index = 0; index < sessions.size(); index++) {
+                String title = sessions.get(index).title;
+                labels[index] = title == null || title.trim().isEmpty()
+                        ? "Conversa " + sessions.get(index).sessionId.substring(0,
+                        Math.min(8, sessions.get(index).sessionId.length())) : title;
+            }
+            new MaterialAlertDialogBuilder(this).setTitle("Conversas anteriores")
+                    .setItems(labels, (dialog, which) -> viewModel.openConversation(sessions.get(which).sessionId))
+                    .setNegativeButton("Cancelar", null).show();
+        });
     }
 
-    private void sendTypedMessage() {
-        String text = messageField.getText().toString().trim();
-        if (TextUtils.isEmpty(text)) {
+    private void showActions() {
+        if (viewModel.isDemo()) {
+            new MaterialAlertDialogBuilder(this).setMessage("Iniciar outra conversa de demonstração?")
+                    .setPositiveButton("Nova conversa", (dialog, which) -> viewModel.newConversation())
+                    .setNegativeButton("Cancelar", null).show();
             return;
         }
-        messageField.setText("");
-        sendUserMessage(text);
+        new MaterialAlertDialogBuilder(this).setTitle("Conversas")
+                .setItems(new String[]{"Conversas anteriores", "Atualizar esta conversa", "Nova conversa"},
+                        (dialog, which) -> {
+                            if (which == 0) viewModel.loadSessions();
+                            else if (which == 1) viewModel.loadHistory();
+                            else viewModel.newConversation();
+                        }).show();
     }
 
-    private void sendUserMessage(String text) {
-        chatAdapter.addMessage(new ChatMessage(ChatMessage.Sender.USER, text));
-        scrollToBottom();
-        handler.postDelayed(() -> {
-            chatAdapter.addMessage(replyEngine.reply(text));
-            scrollToBottom();
-        }, BOT_REPLY_DELAY_MS);
-    }
-
-    private void scrollToBottom() {
-        recyclerView.post(() -> recyclerView.smoothScrollToPosition(chatAdapter.getMessageCount() - 1));
-    }
-
-    @Override
-    protected void onDestroy() {
-        handler.removeCallbacksAndMessages(null);
-        super.onDestroy();
+    @Override protected void onResume() {
+        super.onResume();
+        ClientAccessGuard.redirectIfRequired(this);
     }
 }

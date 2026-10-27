@@ -1,84 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_beige"
     android:fillViewport="true">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="@dimen/screen_padding">
-
+        <include
+            layout="@layout/include_brand_header" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Encontre onde salvar"
             android:textColor="@color/text_primary"
-            android:textSize="22sp"
+            android:textSize="26sp"
             android:textStyle="bold" />
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Lojas parceiras perto de você"
+            android:text="Lojas parceiras cadastradas"
             android:textColor="@color/text_grey"
             android:textSize="13sp" />
-
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stores_use_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/stores_find_nearby" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stores_clear_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stores_radius_default"
+            style="@style/Widget.Client.Button.Secondary" />
+        <TextView
+            android:id="@+id/stores_location_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_grey" />
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
-
+            android:layout_marginTop="16dp"
+            android:minHeight="220dp"
+            android:background="@drawable/bg_map_placeholder">
             <com.mottainai.cliente.widgets.PartnerMapView
                 android:id="@+id/map_stores"
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
-                android:background="@drawable/bg_map_placeholder" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="14dp"
-                android:letterSpacing="0.05"
-                android:text="SUA REGIÃO"
-                android:textColor="@color/primary_green_dark"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
+                android:visibility="gone" />
             <TextView
                 android:id="@+id/tv_nearest_store"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|start"
+                android:layout_gravity="top|start"
                 android:layout_margin="14dp"
                 android:background="@drawable/bg_pill_rounded"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="6dp"
-                android:text="Mercado Verde · 0.4 km"
+                android:text="Carregando lojas..."
                 android:textColor="@color/text_primary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </FrameLayout>
-
+        <TextView
+            android:id="@+id/stores_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Carregando lojas..."
+            android:textColor="@color/text_grey" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stores_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tentar novamente"
+            android:visibility="gone" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Parceiros recomendados"
+            android:text="Lojas disponíveis"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_stores"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:nestedScrollingEnabled="false" />
-
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stores_load_more"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Carregar mais lojas"
+            android:visibility="gone" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -44,6 +44,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return messages.size();
     }
 
+    public void setMessages(List<ChatMessage> snapshot) {
+        messages.clear();
+        if (snapshot != null) messages.addAll(snapshot);
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getItemViewType(int position) {
         ChatMessage message = messages.get(position);
