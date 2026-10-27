@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/background_beige">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="32dp">
+        <include
+            layout="@layout/include_brand_header" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mottainai"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Entre para aproveitar ofertas que ajudam a reduzir o desperdício."
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_login_google"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Continuar com Google"
+            style="@style/Widget.Client.Button.Secondary" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="ou entre com e-mail e senha"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+        <EditText
+            android:id="@+id/input_login_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="E-mail"
+            android:inputType="textEmailAddress"
+            android:maxLength="150"
+            style="@style/Widget.Client.Input" />
+        <EditText
+            android:id="@+id/input_login_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Senha"
+            android:saveEnabled="false"
+            android:inputType="textPassword"
+            style="@style/Widget.Client.Input" />
+        <TextView
+            android:id="@+id/text_login_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_login_submit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Entrar" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_retry_profile_sync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tentar sincronizar novamente"
+            android:visibility="gone" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_reset_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Esqueci minha senha"
+            style="@style/Widget.Client.Button.Secondary" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_open_registration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Criar conta"
+            style="@style/Widget.Client.Button.Secondary" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_explore_demo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Explorar sem entrar · demonstração"
+            android:visibility="gone"
+            style="@style/Widget.Client.Button.Secondary" />
+    </LinearLayout>
+</ScrollView>

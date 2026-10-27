@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/background_beige">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+        <include
+            layout="@layout/include_brand_header" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Criar conta"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+        <TextView
+            android:id="@+id/text_register_step"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Etapa 1 de 2 · Seus dados"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
+        <ViewFlipper
+            android:id="@+id/register_pages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <EditText
+                    android:id="@+id/input_register_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Nome completo"
+                    android:inputType="textPersonName"
+                    android:maxLength="150"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_cpf"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="CPF · 000.000.000-00"
+                    android:digits="0123456789.-"
+                    android:inputType="number"
+                    android:maxLength="14"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="E-mail"
+                    android:inputType="textEmailAddress"
+                    android:maxLength="150"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <TextView
+                    android:id="@+id/text_register_account"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Este e-mail identifica a conta autenticada. Para usar outro e-mail, toque em Trocar conta."
+                    android:visibility="gone" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_register_change_account"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Trocar conta"
+                    android:visibility="gone"
+                    style="@style/Widget.Client.Button.Secondary" />
+                <EditText
+                    android:id="@+id/input_register_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Senha (mínimo de 8 caracteres)"
+                    android:saveEnabled="false"
+                    android:inputType="textPassword"
+                    android:maxLength="100"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_password_confirm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Confirme a senha"
+                    android:saveEnabled="false"
+                    android:inputType="textPassword"
+                    android:maxLength="100"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Telefone com DDD"
+                    android:inputType="phone"
+                    android:maxLength="20"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_birth_date"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Nascimento · DD/MM/AAAA (opcional)"
+                    android:digits="0123456789/"
+                    android:inputType="date"
+                    android:maxLength="10"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_register_google"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Continuar com Google"
+                    style="@style/Widget.Client.Button.Secondary" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_register_next"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Continuar" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Informe seu endereço para encontrar lojas próximas."
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+                <EditText
+                    android:id="@+id/input_register_cep"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="CEP · 00000-000"
+                    android:digits="0123456789-"
+                    android:inputType="number"
+                    android:maxLength="9"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_register_find_cep"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Buscar CEP" />
+                <EditText
+                    android:id="@+id/input_register_street"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Rua"
+                    android:inputType="textPostalAddress"
+                    android:maxLength="150"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Número"
+                    android:inputType="text"
+                    android:maxLength="10"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_complement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Complemento (opcional)"
+                    android:inputType="text"
+                    android:maxLength="100"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_neighborhood"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Bairro"
+                    android:inputType="textPostalAddress"
+                    android:maxLength="100"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_city"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Cidade"
+                    android:inputType="textPostalAddress"
+                    android:maxLength="100"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <EditText
+                    android:id="@+id/input_register_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="UF"
+                    android:inputType="textCapCharacters"
+                    android:maxLength="2"
+                    style="@style/Widget.Client.Input"
+                    android:layout_marginTop="10dp" />
+                <CheckBox
+                    android:id="@+id/check_register_marketing"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Aceito receber novidades e ofertas" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_register_back"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Voltar" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_register_submit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Finalizar cadastro" />
+            </LinearLayout>
+        </ViewFlipper>
+        <TextView
+            android:id="@+id/text_register_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

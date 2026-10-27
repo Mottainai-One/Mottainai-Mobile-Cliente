@@ -1,3 +1,26 @@
 <resources>
-  <string name="app_name">Mottainai</string>
+    <string name="app_name">Mottainai</string>
+    <string name="back">Voltar</string>
+    <string name="nav_home">Início</string>
+    <string name="nav_catalog">Catálogo</string>
+    <string name="nav_stores">Lojas</string>
+    <string name="nav_points">Pontos</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="stores_find_nearby">Buscar / atualizar localização</string>
+    <string name="stores_radius_default">Raio: 5 km · Alterar</string>
+    <string name="stores_radius_button">Raio: %1$d km · Alterar</string>
+    <string name="stores_radius_option">%1$d km</string>
+    <string name="stores_radius_title">Escolha o raio de busca</string>
+    <string name="stores_radius_status">Lojas em até %1$d km. Distâncias aproximadas em linha reta.</string>
+    <string name="stores_location_explanation">Usaremos sua posição atual para buscar lojas em até %1$d km. A localização é necessária para este serviço. Você pode alterar o raio nesta tela.</string>
+    <string name="location_access_title">Encontre ofertas perto de você</string>
+    <string name="location_access_explanation">Para acessar os serviços do Mottainai, autorize a localização e mantenha a localização do aparelho ativada. Usamos sua posição para encontrar lojas e ofertas próximas. A localização aproximada permite continuar. Esta autorização é para usar o aplicativo em primeiro plano.</string>
+    <string name="location_access_permission_missing">O acesso aos serviços está pausado. Se você já negou a permissão e o Android não perguntar novamente, abra as configurações do aplicativo para autorizá-la.</string>
+    <string name="location_access_device_off">A permissão foi concedida, mas a localização do aparelho está desligada. Ative-a para continuar.</string>
+    <string name="location_access_allow">Autorizar localização</string>
+    <string name="location_access_enable_device">Ativar localização do aparelho</string>
+    <string name="location_access_settings">Abrir configurações do aplicativo</string>
+    <string name="location_access_retry">Verificar novamente</string>
+    <string name="location_access_logout">Sair da conta</string>
+    <string name="location_access_settings_unavailable">Não foi possível abrir as configurações. Acesse manualmente as permissões do Mottainai nas configurações do aparelho.</string>
 </resources>

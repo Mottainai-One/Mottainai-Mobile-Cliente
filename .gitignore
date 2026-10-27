@@ -1,6 +1,8 @@
 *.iml
 .gradle
 /local.properties
+app/google-services.json
+app/google-services*.json
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
@@ -14,6 +16,3 @@
 .externalNativeBuild
 .cxx
 local.properties
-node_modules/
-.design-cache/
-__pycache__/

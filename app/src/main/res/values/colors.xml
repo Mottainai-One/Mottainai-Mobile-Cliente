@@ -1,18 +1,47 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- Brand palette -->
-  <color name="primary_green">#1F5233</color>
-  <color name="accent_red">#D32F2F</color>
-  <!-- Text -->
-  <color name="text_primary">#212121</color>
-  <color name="text_grey">#757575</color>
-  <!-- Surfaces -->
-  <color name="white">#FFFFFFFF</color>
-  <!-- Offer thumbnail placeholders (flat color stand-ins for product photos) -->
-  <color name="thumb_green">#A9D8B8</color>
-  <color name="thumb_orange">#F3C08A</color>
-  <color name="thumb_tan">#E4C9A0</color>
-  <color name="thumb_brown">#B08968</color>
-  <color name="thumb_peach">#F0B79A</color>
-  <color name="thumb_purple">#C9B6D9</color>
+    <!-- Brand palette -->
+    <color
+        name="primary_green">#102654</color>
+    <color
+        name="primary_green_dark">#102654</color>
+    <color
+        name="background_beige">#F6F7FA</color>
+    <color
+        name="card_light_green">#E8EFF8</color>
+    <color
+        name="surface_card">#FFFFFF</color>
+    <color
+        name="on_primary">#FFFFFF</color>
+    <color
+        name="surface_alert">#FCEEEE</color>
+    <color
+        name="accent_red">#D32F2F</color>
+    <!-- Text -->
+    <color
+        name="text_primary">#132B50</color>
+    <color
+        name="text_grey">#596A80</color>
+    <color
+        name="text_grey_light">#78869A</color>
+    <color
+        name="divider_grey">#DCE3EC</color>
+    <!-- Surfaces -->
+    <color
+        name="white">#FFFFFFFF</color>
+    <color
+        name="chat_bubble_user">#102654</color>
+    <color
+        name="chat_bubble_bot">#FFFFFF</color>
+    <!-- Offer thumbnail placeholders (flat color stand-ins for product photos) -->
+    <color
+        name="thumb_green">#A9D8B8</color>
+    <color
+        name="thumb_orange">#F3C08A</color>
+    <color
+        name="thumb_tan">#E4C9A0</color>
+    <color
+        name="thumb_brown">#B08968</color>
+    <color
+        name="thumb_peach">#F0B79A</color>
 </resources>

@@ -5,13 +5,6 @@
     app:startDestination="@id/homeFragment">
 
     <fragment
-        android:id="@+id/screenFragment"
-        android:name="com.mottainai.cliente.fragments.ScreenFragment"
-        android:label="@string/app_name">
-        <argument android:name="screen" app:argType="string" android:defaultValue="2005:3812" />
-    </fragment>
-
-    <fragment
         android:id="@+id/homeFragment"
         android:name="com.mottainai.cliente.fragments.HomeFragment"
         android:label="Início" />
@@ -19,7 +12,13 @@
     <fragment
         android:id="@+id/catalogFragment"
         android:name="com.mottainai.cliente.fragments.CatalogFragment"
-        android:label="Catálogo" />
+        android:label="Catálogo">
+        <argument
+            android:name="store_id"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
 
     <fragment
         android:id="@+id/storesFragment"
