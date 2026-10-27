@@ -43,7 +43,7 @@ O **Mottainai** (もったいない, *"que desperdício"*) é um sistema de gest
 
 | | Princípio | Como aparece no código |
 |---|---|---|
-| **1** | **App não acessa banco** | Todo dado vem de APIs REST via Retrofit (`network/`). Não há Room/SQLite. |
+| **1** | **App não acessa banco** | No fluxo real, os dados de negócio são requisitados a APIs REST via Retrofit (`network/`); o modo demonstração usa dados locais. Não há Room/SQLite. |
 | **2** | **Firebase só para identidade** | Apenas `firebase-auth` é dependência. O perfil é gravado no SQL pela API (`POST/PUT api/v1/client/auth/profile`). |
 | **3** | **Sessão mínima no aparelho** | `SessionManager` guarda só `client_id`, `firebase_uid` e flags. Não persiste senha nem token (remove a chave legada `auth_token`). |
 | **4** | **Sem cálculo de pontos no app** | Saldo e extrato vêm de `api/v1/client/loyalty/*`; o app apenas apresenta. |
