@@ -2,7 +2,7 @@
 
 # Mottainai Mobile Cliente
 
-**Aplicativo Android do consumidor final do Mottainai: gestão preditiva de estoque para pequenos e médios varejos**
+**Aplicativo Android do consumidor final: vitrine de ofertas de mercados parceiros e fidelidade no ecossistema Mottainai**
 
 *Ofertas, lojas, pontos e assistente, com autenticação Firebase e clientes HTTP para os serviços configurados; a homologação depende das integrações disponíveis.*
 
@@ -51,7 +51,7 @@ O **Mottainai** (もったいない, *"que desperdício"*) é um sistema de gest
 | **6** | **Dados fictícios só em debug** | `isDemoMode()` exige `BuildConfig.DEBUG`; release nunca entra em demonstração. |
 
 > [!NOTE]
-> Este README documenta o estado da branch **`main` no commit `1bf4112`** (merge da PR #20, 27/10/2026). O repositório tem ~20 branches remotas (`feat/*`, `fix/*`, `ci/*`, `docs/*`); o conteúdo delas **não** foi analisado aqui.
+> Este README documenta o estado do app na branch **`main` no commit `1bf4112`** (merge da PR #20, 27/10/2026), com revisão das PRs em 28/10/2026. As branches legadas foram comparadas com a versão integrada; a ordem recomendada para as mudanças restantes é **PR #18 (CI) → PR #22 (este README)**.
 
 ---
 
@@ -319,6 +319,8 @@ sequenceDiagram
     alt perfil existe e ativo
         API-->>App: 200 + id do cliente
     else perfil inexistente
+        API-->>App: 404 (perfil necessário)
+        App->>App: Concluir formulário com dados obrigatórios
         App->>API: POST /api/v1/client/auth/profile
         alt conflito
             App->>API: GET /profile (recupera o próprio perfil)
@@ -436,7 +438,7 @@ Para testes instrumentados (exige emulador/aparelho conectado):
 ```
 
 > [!WARNING]
-> Nenhum desses comandos foi executado nesta análise. O segundo é a task padrão do AGP para `androidTest` e não aparece na CI.
+> O projeto original compilou e passou nos 81 testes JVM em 27/10/2026. A revisão de PRs em 28/10 não repetiu o build Android, pois alterou somente CI/documentação. Os testes instrumentados e a homologação com serviços reais continuam pendentes.
 
 ---
 
@@ -447,7 +449,8 @@ Para testes instrumentados (exige emulador/aparelho conectado):
 | Tipo | Local | Quantidade | Foco |
 |---|---|:---:|---|
 | Unitários (JUnit 4) | `app/src/test/` | 16 classes · 81 `@Test` | CPF, máscaras/campos do cadastro, raio, coordenadas, URL do Maps, paginação, períodos de fidelidade, contrato de chat e de perfil, política de criação de perfil, erros de sincronização, estado de acesso, imagens, dados de demo |
-| Instrumentados (Espresso) | `app/src/androidTest/UiIntegrationTest.java` | 2 `@Test` | Bindings das telas em tema claro/escuro; badges de oferta em itens reciclados |
+| Instrumentados (Espresso) | `app/src/androidTest/java/com/mottainai/cliente/UiIntegrationTest.java` | 2 `@Test` | Bindings das telas em tema claro/escuro; badges de oferta em itens reciclados |
+| Validador do CI (PR #18) | `.github/scripts/test_check_commit_messages.py` | 7 casos | Histórico anterior, mensagens válidas/inválidas, merges, intervalo vazio e primeiro push |
 
 A documentação registra execuções locais em 21/10 e 27/10/2026 com `assembleDebug` e 81 testes JVM aprovados, e afirma que os instrumentados **não** rodaram por falta de aparelho (`docs/TESTES-ENTREGA-CLIENTE.md`, `docs/FRONTEND-INTEGRADO.md`). Não há cobertura (JaCoCo) configurada.
 
@@ -470,7 +473,18 @@ flowchart LR
 ```
 
 > [!WARNING]
-> **Provável falha do job 3 em push na `main`.** Em push, o job valida `git log --oneline -10`, que hoje inclui `Merge pull request #20 ...`, `Merge pull request #2 ...` e `Remove citations from README.md for clarity`, nenhuma no padrão `tipo(escopo): mensagem`. Isso é inferência pela leitura do script; o resultado real da execução não foi consultado. Não há numeração "4" entre os jobs.
+> **Falha histórica confirmada no job 3 após o merge da #20.** A execução [40491941564](https://github.com/Mottainai-One/Mottainai-Mobile-Cliente/actions/runs/40491941564) reprovou o merge automático ao validar os dez últimos commits da `main`. A correção da **PR #18**, a integrar antes deste README, valida somente os commits recebidos no evento e exclui mensagens de merge; mensagens inválidas dos commits da feature continuam sendo rejeitadas. Os sete testes de regressão passaram localmente em 28/10/2026. Não há numeração "4" entre os jobs.
+
+### Reconciliação das PRs
+
+| PRs | Situação e ação |
+|---|---|
+| #20 | Mergeada; contém a implementação integrada que serve de base ao app |
+| #3, #4 e #6–#17 | Encerradas sem merge em 28/10/2026, com autorização; alterações incorporadas ou substituídas pela #20, branches preservadas |
+| #18 | Correção do validador de commits, reconciliada para revisão contra `main`; integrar primeiro, após os checks e a revisão exigida |
+| #22 | Este README, para integrar depois da #18; homologação do app não é substituída pela revisão documental |
+
+O preview local de avatar e os contratos antigos de perfil não foram reintroduzidos. Upload de avatar pelo serviço definido continua pendente. A paleta atual substitui o tema verde da PR #13.
 
 ---
 
@@ -511,9 +525,9 @@ flowchart LR
 
 1. **Release não está pronto para distribuição.** `isMinifyEnabled = false`, sem `signingConfig` e `versionCode = 1`. Por inferência, ainda não há pipeline de release.
 2. **Dependência forte de contratos externos.** O feed de ofertas por proximidade, o nome no perfil e o chat autorizado dependem de mudanças na API e na IA que não estão neste repositório.
-3. **Gate de localização obrigatório.** `ClientAccessGuard` bloqueia os serviços reais sem permissão e GPS ligado. É uma decisão de produto que pode afastar quem só quer ver o catálogo.
+3. **Gate de localização obrigatório.** `ClientAccessGuard` bloqueia os serviços reais sem permissão e GPS ligado, conforme a regra definida para o Cliente. A tela orienta conceder a permissão e ativar a localização.
 4. **Código de demonstração no APK de release.** `DemoData` e `Mock*` são compilados também no release, mesmo inacessíveis em tempo de execução. Mover para o source set `debug` reduziria superfície e tamanho.
-5. **CI de commits incompatível com merge commits**, como descrito na seção 9.
+5. **Correção do CI depende da integração da PR #18.** A falha histórica e o comportamento corrigido estão descritos na seção 9.
 6. **Commit de integração muito grande.** `6aa54ef` altera 298 arquivos (+37.995 linhas), o que dificulta a revisão e o rastreio de regressões.
 
 ### Divergências entre documentação e código
@@ -523,7 +537,7 @@ flowchart LR
 | `README.md` (original) | "integração do chat não faz parte deste MVP" | Existe cliente HTTP completo do assistente (`AssistantActivity`, `AssistantService`, `AssistantRepository`); `CHANGELOG.md` e `docs/PLANO-MOBILE-CLIENTE.md` o tratam como implementado e aguardando homologação |
 | `README.md` (original) | Cadastro/login "por e-mail e senha" | Também há login Google (`GoogleSignInHelper`, Credential Manager); o próprio README menciona Google mais abaixo |
 | `README.md` (original) | "impacto ambiental não faz parte" | Existe `ImpactFragment` ("Meu impacto"), mas mostra só dados de fidelidade (`CHANGELOG`: métricas ambientais removidas) |
-| `docs/delivery-status.md` (18/10) | PRs #11–#18 abertas, "não houve merge" | A `main` contém essas funcionalidades, por inferência integradas via PR #20 (`feat/client-native-xml`); o histórico da `main` não mostra os merges #11–#18 |
+| `docs/delivery-status.md` (18/10) | PRs #11–#18 abertas, "não houve merge" | Registro histórico: a #20 integrou a versão atual; as PRs legadas foram encerradas e a #18 foi reconciliada como correção de CI. Isso não equivale a merges individuais de cada PR antiga |
 | `Constants.java` | `NOTIFICATION_CHANNEL_GENERAL_ID` | Nenhum uso e nenhuma permissão `POST_NOTIFICATIONS`; push não implementado |
 | `README.md` (original) | Caminho Windows `C:\Users\<usuario>\.gradle\gradle.properties` | Vale para qualquer SO: `~/.gradle/gradle.properties` |
 
@@ -548,8 +562,8 @@ flowchart LR
 | Repositório | [Mottainai-One/Mottainai-Mobile-Cliente](https://github.com/Mottainai-One/Mottainai-Mobile-Cliente) |
 | Branch | `main` |
 | Commit analisado | `1bf4112` (Merge pull request #20, 27/10/2026) |
-| Data da análise | 27/10/2026 |
-| Método | Leitura estática do clone local; nenhum build, teste ou chamada de API foi executado |
+| Data da análise | 27/10/2026; revisão de PRs em 28/10/2026 |
+| Método | Leitura estática, comparação Git das PRs e sete testes do validador de CI; sem novo build Android, teste instrumentado ou chamada de API nesta revisão |
 
 <details>
 <summary><b>Arquivos consultados</b></summary>
