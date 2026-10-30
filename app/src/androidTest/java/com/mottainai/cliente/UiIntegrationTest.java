@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -28,6 +29,18 @@ import org.junit.runner.RunWith;
 /** Guards the existing controllers' contracts while their XML presentation changes. */
 @RunWith(AndroidJUnit4.class)
 public class UiIntegrationTest {
+    @Test public void launcherFlowHandlesLandscapeConfigurationChanges() throws Exception {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        ActivityInfo onboarding = context.getPackageManager().getActivityInfo(
+                new android.content.ComponentName(context, com.mottainai.cliente.activities.OnboardingActivity.class),
+                0);
+        ActivityInfo main = context.getPackageManager().getActivityInfo(
+                new android.content.ComponentName(context, MainActivity.class), 0);
+        int required = ActivityInfo.CONFIG_ORIENTATION | ActivityInfo.CONFIG_SCREEN_SIZE;
+        assertEquals(required, onboarding.configChanges & required);
+        assertEquals(required, main.configChanges & required);
+    }
+
     @Test public void screenBindingsSurviveInLightAndDarkThemes() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
             for (int mode : new int[]{Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_YES}) {
