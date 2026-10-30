@@ -24,6 +24,7 @@
         <!-- LAUNCHER: onboarding decides whether to show the intro or skip straight to MainActivity. -->
         <activity
             android:name=".activities.OnboardingActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,6 +34,7 @@
 
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden"
             android:exported="false" />
 
         <activity
