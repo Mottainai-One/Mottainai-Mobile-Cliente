@@ -9,7 +9,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+/** Reúne os cenários de teste de CustomerProfileResponse. */
 public class CustomerProfileResponseTest {
+    /** Verifica a leitura do perfil protegido sem exigir contatos em texto aberto. */
     @Test public void readsProtectedProfileWithoutExpectingPlaintextContactFields() {
         CustomerProfileResponse profile = new Gson().fromJson(
                 "{\"id\":7,\"birthYear\":2000,\"active\":true,\"marketingConsent\":false}",
@@ -21,6 +23,7 @@ public class CustomerProfileResponseTest {
         assertNull(profile.email);
     }
 
+    /** Verifica se valores protegidos não são exibidos como nome ou contato. */
     @Test public void neverDisplaysProtectedTokensAsNameOrContact() {
         CustomerProfileResponse profile = new Gson().fromJson(
                 "{\"id\":7,\"fullName\":\"CUS_SHA256_example\",\"email\":\"EMAIL_SHA256_example\",\"phone\":\"PHONE_SHA256_example\"}",
@@ -30,6 +33,7 @@ public class CustomerProfileResponseTest {
         assertNull(profile.phone);
     }
 
+    /** Verifica se os campos exclusivos de apresentação ficam fora do JSON persistido. */
     @Test public void presentationFieldsAreNotPersistedInJson() {
         CustomerProfileResponse profile = new CustomerProfileResponse();
         profile.id = 7;
