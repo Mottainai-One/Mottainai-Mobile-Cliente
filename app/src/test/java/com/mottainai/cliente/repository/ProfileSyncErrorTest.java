@@ -10,11 +10,13 @@ import static org.junit.Assert.*;
 
 /** Reúne os cenários de teste de ProfileSyncError. */
 public class ProfileSyncErrorTest {
-    /** Verifica a mensagem produzida quando o serviço local está indisponível no emulador. */
-    @Test public void unavailableLocalApiExplainsEmulatorAddress() {
+    /** Informa a falha de conexão sem expor configuração local nem texto da exceção. */
+    @Test public void unavailableServiceDoesNotExposeTechnicalConfiguration() {
         String message = ProfileSyncError.message(new ConnectException("SECRET"), true);
-        assertTrue(message.contains("conectar à API"));
-        assertTrue(message.contains("só funciona no emulador"));
+        assertEquals("Não foi possível conectar. Verifique sua internet e tente novamente.", message);
+        assertFalse(message.contains("API"));
+        assertFalse(message.contains("emulador"));
+        assertEquals(message, ProfileSyncError.message(new ConnectException("SECRET"), false));
         assertFalse(message.contains("SECRET"));
     }
     /** Verifica se o tempo esgotado não é apresentado como senha incorreta. */
@@ -26,23 +28,26 @@ public class ProfileSyncErrorTest {
     /** Verifica se uma resposta inválida não é tratada como ausência de internet. */
     @Test public void malformedResponseIsNotReportedAsInternetFailure() {
         String message = ProfileSyncError.message(new JsonSyntaxException("SECRET"), false);
-        assertTrue(message.contains("incompatíveis"));
+        assertEquals("Não foi possível concluir agora. Tente novamente.", message);
+        assertFalse(message.contains("internet"));
         assertFalse(message.contains("SECRET"));
     }
-    /** Verifica a distinção entre falhas de resolução de endereço e de conexão segura. */
-    @Test public void dnsAndTlsFailuresAreDistinct() {
-        assertTrue(ProfileSyncError.message(new UnknownHostException(), false).contains("não foi encontrado"));
-        assertTrue(ProfileSyncError.message(new SSLHandshakeException("SECRET"), false).contains("HTTPS segura"));
+    /** Apresenta falhas de endereço e conexão segura sem detalhes técnicos ou sensíveis. */
+    @Test public void dnsAndTlsFailuresUseSafeConnectionMessage() {
+        String expected = "Não foi possível conectar. Verifique sua internet e tente novamente.";
+        assertEquals(expected, ProfileSyncError.message(new UnknownHostException("SECRET"), false));
+        assertEquals(expected, ProfileSyncError.message(new SSLHandshakeException("SECRET"), false));
     }
     /** Verifica a classificação de falhas de rede encapsuladas em outras exceções. */
     @Test public void wrappedNetworkErrorsKeepTheirClassification() {
         String message = ProfileSyncError.message(new java.io.IOException(new ConnectException()), false);
-        assertTrue(message.contains("conectar à API"));
+        assertEquals(ProfileSyncError.message(new ConnectException(), false), message);
     }
     /** Verifica se o JSON inválido é distinguido das falhas de internet. */
     @Test public void malformedJsonIsNotAnInternetError() {
         String message = ProfileSyncError.message(new com.google.gson.stream.MalformedJsonException("SECRET"), true);
-        assertTrue(message.contains("incompatíveis"));
+        assertEquals("Não foi possível concluir agora. Tente novamente.", message);
+        assertFalse(message.contains("internet"));
         assertFalse(message.contains("SECRET"));
         assertFalse(message.contains("emulador"));
     }
