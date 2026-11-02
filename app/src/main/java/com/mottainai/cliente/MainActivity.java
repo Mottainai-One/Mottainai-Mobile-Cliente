@@ -55,6 +55,12 @@ public class MainActivity extends AppCompatActivity {
     }
     /** Exibe a tela solicitada e organiza a navegação e os painéis sobrepostos. */
     public void showScreen(String id, boolean history) {
+        findViewById(R.id.design_container).post(()->{
+            if(!isFinishing()&&!isDestroyed())navigateToScreen(id,history);
+        });
+    }
+    /** Executa a navegação fora dos callbacks de criação dos fragmentos para fechar painéis com segurança. */
+    private void navigateToScreen(String id, boolean history) {
         DesignRepository repository=DesignRepository.get(this);
         if(!repository.available(id))return;
         if(!isDesignPreview()) {
@@ -81,13 +87,20 @@ public class MainActivity extends AppCompatActivity {
         }
         String canonical=repository.canonical(id);
         androidx.fragment.app.FragmentManager manager=getSupportFragmentManager();
+        if(manager.isStateSaved())return;
         if(!isDesignPreview()&&canonical.equals("2028:4492")&&manager.getBackStackEntryCount()>0) {
-            manager.popBackStack(null,androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            manager.popBackStackImmediate(null,androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
         }
-        if(manager.findFragmentById(R.id.design_overlay)!=null)manager.popBackStack("overlay",androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        if(manager.findFragmentById(R.id.design_overlay)!=null)manager.popBackStackImmediate("overlay",androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
         boolean overlay=repository.screen(canonical).optBoolean("overlay");
+        androidx.fragment.app.Fragment content=manager.findFragmentById(R.id.design_content);
+        if(!overlay&&content!=null&&canonical.equals(content.getTag()))return;
         androidx.fragment.app.FragmentTransaction transaction=manager.beginTransaction().setReorderingAllowed(true);
-        transaction.setCustomAnimations(android.R.anim.fade_in,android.R.anim.fade_out,android.R.anim.fade_in,android.R.anim.fade_out);
+        if(android.animation.ValueAnimator.areAnimatorsEnabled()) {
+            transaction.setCustomAnimations(history&&!overlay?R.anim.client_detail_enter:R.anim.client_fade_enter,
+                    R.anim.client_fade_exit,R.anim.client_fade_enter,
+                    history&&!overlay?R.anim.client_detail_exit:R.anim.client_fade_exit);
+        }
         if(overlay) {
             if(manager.findFragmentById(R.id.design_content)==null) {
                 String base=overlayBase(canonical);
