@@ -113,7 +113,6 @@ public final class ClientRuntime {
         if(screen.equals("2093:6331")||screen.equals("2005:3812")||screen.equals("2005:4483")||screen.equals("2143:11079"))bindPoints();
         if(screen.equals("2093:6456")||screen.equals("2093:6588"))bindHistory();
         if(screen.equals("2393:19184")||screen.equals("2650:73471"))bindProfile();
-        if(screenName.contains("Cliente / Avisos /"))status("Ative os avisos para receber novidades e ofertas próximas.");
         if(screenName.contains("Conversa com a Lô"))bindAssistant();
         if(screen.equals("2143:10917"))bindFilters();
     }
@@ -167,6 +166,13 @@ public final class ClientRuntime {
     }
     /** Interpreta a ação disparada pelo componente e executa o fluxo correspondente. */
     public boolean act(JSONObject tag,String label) {
+        if(label.equals("Avisos próximos")||label.equals("Meus avisos")||tag.optString("name").equals("Opção / Avisos próximos")){
+            com.mottainai.cliente.notifications.NotificationPreferencesDialog.show(host);return true;
+        }
+        if(label.equals("Desativar avisos")){
+            com.mottainai.cliente.notifications.CustomerNotifications.setEnabled(host,false);
+            fragment.refreshNotificationSettings();return true;
+        }
         String name=tag.optString("name");
         if(auth!=null&&auth.isBusy()){status("Aguarde a conclusão da solicitação.");return true;}
         if(label.equals("Entrar")) {
@@ -195,7 +201,7 @@ public final class ClientRuntime {
             host.startActivity(new Intent(host,MainActivity.class).putExtra("screen","2244:11739")
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK));host.finish();return true;}
         if(label.matches("(5|10) km")){int km=Integer.parseInt(label.split(" ")[0]);catalog().useStoreRadius(OfferRadius.fromKilometers(km));
-            host.getSharedPreferences("cliente_preferences",0).edit().putString("radius",label).apply();host.getSupportFragmentManager().popBackStack();return true;}
+            host.getSharedPreferences("cliente_preferences",0).edit().putString("radius",label).apply();com.mottainai.cliente.notifications.NotificationPreferenceRepository.radiusChanged(host);host.getSupportFragmentManager().popBackStack();return true;}
         if(label.equals("Permitir localização")||label.equals("Usar minha localização")||label.equals("Durante o uso do app")||label.equals("Apenas desta vez")||(label.equals("Tentar novamente")||label.equals("Verificar novamente")||label.equals("Rever acesso"))&&ClientRoutes.isLocationAccess(screenName)) {
             if(!ClientAccessGuard.hasLocationPermission(host))fragment.requestClientLocation();
             else if(!ClientAccessGuard.isLocationEnabled(host))host.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
@@ -350,7 +356,7 @@ public final class ClientRuntime {
         String saved=preferences.getString("radius","5 km");
         if("5 km".equals(saved)||"10 km".equals(saved))return saved;
         String allowed="10 km";
-        preferences.edit().putString("radius",allowed).apply();
+        preferences.edit().putString("radius",allowed).apply();com.mottainai.cliente.notifications.NotificationPreferenceRepository.radiusChanged(host);
         return allowed;
     }
     /** Conecta a busca de produtos ao campo dentro da tela de ofertas. */
